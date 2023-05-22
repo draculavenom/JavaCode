@@ -1,9 +1,9 @@
 package com.draculavenom.securityManagement.dto;
 
 public class UserDto {
-	private String name;
-	private String username;
-	private String password;
+	protected String name;
+	protected String username;
+	protected String password;
 	public UserDto() {}
 	public UserDto(String name, String username, String password) {
 		super();

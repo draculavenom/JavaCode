@@ -42,7 +42,7 @@ public class WebSecurityConfig {
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		http.csrf().disable()
 			.authorizeHttpRequests((requests) -> requests
-				.requestMatchers("/", "/error", "/login", "/register", "/test").permitAll()
+				.requestMatchers("/", "/error", "/auth/**").permitAll()
 				.requestMatchers(new AntPathRequestMatcher("/h2-console/**")).permitAll()
 				.requestMatchers("/users").hasAnyRole("USER")
 				.anyRequest().authenticated()
