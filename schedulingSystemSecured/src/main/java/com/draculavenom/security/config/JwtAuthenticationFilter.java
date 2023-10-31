@@ -1,6 +1,8 @@
 package com.draculavenom.security.config;
 
 import com.draculavenom.security.token.TokenRepository;
+import com.draculavenom.security.user.User;
+
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

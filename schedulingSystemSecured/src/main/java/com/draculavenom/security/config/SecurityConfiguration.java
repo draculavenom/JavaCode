@@ -25,7 +25,12 @@ import static com.draculavenom.security.user.Permission.MANAGER_CREATE;
 import static com.draculavenom.security.user.Permission.MANAGER_DELETE;
 import static com.draculavenom.security.user.Permission.MANAGER_READ;
 import static com.draculavenom.security.user.Permission.MANAGER_UPDATE;
+import static com.draculavenom.security.user.Permission.USER_CREATE;
+import static com.draculavenom.security.user.Permission.USER_DELETE;
+import static com.draculavenom.security.user.Permission.USER_READ;
+import static com.draculavenom.security.user.Permission.USER_UPDATE;
 import static com.draculavenom.security.user.Role.ADMIN;
+import static com.draculavenom.security.user.Role.USER;
 import static com.draculavenom.security.user.Role.MANAGER;
 import static org.springframework.http.HttpMethod.DELETE;
 import static org.springframework.http.HttpMethod.GET;
@@ -83,6 +88,13 @@ public class SecurityConfiguration {
         .requestMatchers(POST, "/api/v1/admin/**").hasAuthority(ADMIN_CREATE.name())
         .requestMatchers(PUT, "/api/v1/admin/**").hasAuthority(ADMIN_UPDATE.name())
         .requestMatchers(DELETE, "/api/v1/admin/**").hasAuthority(ADMIN_DELETE.name())
+        
+//        .requestMatchers("/api/v1/Appointments/**").hasAnyRole(ADMIN.name(), MANAGER.name(), USER.name())
+//
+//        .requestMatchers(GET, "/api/v1/Appointments/**").hasAuthority(USER_READ.name())
+//        .requestMatchers(POST, "/api/v1/Appointments/**").hasAuthority(USER_CREATE.name())
+//        .requestMatchers(PUT, "/api/v1/Appointments/**").hasAuthority(USER_UPDATE.name())
+//        .requestMatchers(DELETE, "/api/v1/Appointments/**").hasAuthority(USER_DELETE.name())
 
 
         .anyRequest()
@@ -111,6 +123,5 @@ public class SecurityConfiguration {
 	    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 	    source.registerCorsConfiguration("/**", configuration);
 	    return source;
-	    //registry.addMapping("/api/v1/**").allowedOrigins("http://localhost:4200").allowedHeaders("*").allowedMethods("*").allowCredentials(true);
 	}
 }

@@ -50,7 +50,7 @@ public class JwtService {
   public String generateRefreshToken(
       UserDetails userDetails
   ) {
-    return buildToken(new HashMap<>(), userDetails, refreshExpiration);
+    return buildToken(new HashMap<>(), userDetails, refreshExpiration);//456123 could be that I have to give the claims instead of an empty HashMap
   }
 
   private String buildToken(

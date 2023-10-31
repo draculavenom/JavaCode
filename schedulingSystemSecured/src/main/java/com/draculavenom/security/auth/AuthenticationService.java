@@ -7,7 +7,6 @@ import com.draculavenom.security.token.TokenType;
 import com.draculavenom.security.user.Role;
 import com.draculavenom.security.user.User;
 import com.draculavenom.security.user.UserRepository;
-import com.draculavenom.usersHandler.dto.UserDTO;
 import com.draculavenom.usersHandler.dto.UserInputDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,6 +31,7 @@ public class AuthenticationService {
 
   public AuthenticationResponse register(RegisterRequest request) {
     var user = User.builder()
+    	.id(request.getId())
         .firstname(request.getFirstname())
         .lastname(request.getLastname())
         .email(request.getEmail())
@@ -56,7 +56,7 @@ public class AuthenticationService {
 				.password(passwordEncoder.encode(request.getPassword()))
 				.phoneNumber(request.getPhoneNumber())
 				.dateOfBirth(request.getDateOfBirth())
-				.managedBy(repository.getById(request.getManagedBy()))
+				.managedBy(request.getManagedBy())
 				.role(Role.USER)
 				.build();
 		var savedUser = repository.save(user);

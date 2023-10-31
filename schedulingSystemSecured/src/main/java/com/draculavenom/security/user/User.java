@@ -16,12 +16,15 @@ import java.util.Collection;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -41,8 +44,7 @@ public class User implements UserDetails {
   private String phoneNumber;
   @Column(nullable = true)
   private LocalDate dateOfBirth;
-  @Column(nullable = true)
-  private User managedBy;
+  private Integer managedBy;
 
   @Enumerated(EnumType.STRING)
   private Role role;

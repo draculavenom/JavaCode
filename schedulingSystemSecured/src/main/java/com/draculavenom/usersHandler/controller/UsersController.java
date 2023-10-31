@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -29,9 +28,7 @@ public class UsersController {
 	public List<UserDTO> getAll(){
 		List users = new ArrayList<UserDTO>();
 		repository.findAll().stream().forEach(u -> {
-			UserDTO user = new UserDTO(u.getId(), u.getEmail(), u.getFirstname() + " " + u.getLastname(), u.getPhoneNumber(), u.getDateOfBirth(), 0);
-			if(u.getManagedBy() != null)
-				user.setManagedBy(u.getManagedBy().getId());
+			UserDTO user = new UserDTO(u.getId(), u.getEmail(), u.getFirstname() + " " + u.getLastname(), u.getPhoneNumber(), u.getDateOfBirth(), u.getManagedBy());
 			users.add(user);
 		});
 		return users;
@@ -42,9 +39,7 @@ public class UsersController {
 	public UserDTO get(@PathVariable int id) {
 		User fullUser = repository.getById(id);
 		if(fullUser != null) {
-			UserDTO user = new UserDTO(fullUser.getId(), fullUser.getEmail(), fullUser.getFirstname() + " " + fullUser.getLastname(), fullUser.getPhoneNumber(), fullUser.getDateOfBirth(), 0);
-			if(fullUser.getManagedBy() != null)
-				user.setManagedBy(fullUser.getManagedBy().getId());
+			UserDTO user = new UserDTO(fullUser.getId(), fullUser.getEmail(), fullUser.getFirstname() + " " + fullUser.getLastname(), fullUser.getPhoneNumber(), fullUser.getDateOfBirth(), fullUser.getManagedBy());
 			return user;
 		}
 		return null;
@@ -56,9 +51,7 @@ public class UsersController {
 		Optional<User> optionalUser = repository.findByEmail(email);
 		if(!optionalUser.isEmpty()) {
 			User fullUser = optionalUser.get();
-			UserDTO user = new UserDTO(fullUser.getId(), fullUser.getEmail(), fullUser.getFirstname() + " " + fullUser.getLastname(), fullUser.getPhoneNumber(), fullUser.getDateOfBirth(), 0);
-			if(fullUser.getManagedBy() != null)
-				user.setManagedBy(fullUser.getManagedBy().getId());
+			UserDTO user = new UserDTO(fullUser.getId(), fullUser.getEmail(), fullUser.getFirstname() + " " + fullUser.getLastname(), fullUser.getPhoneNumber(), fullUser.getDateOfBirth(), fullUser.getManagedBy());
 			return user;
 		}
 		return null;
