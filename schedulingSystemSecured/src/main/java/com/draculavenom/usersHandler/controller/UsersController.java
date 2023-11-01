@@ -17,18 +17,17 @@ import com.draculavenom.usersHandler.dto.UserDTO;
 
 @RestController
 @RequestMapping("/api/v1/Users")
-//@PreAuthorize("hasRole('MANAGER')")
 public class UsersController {
 	
 	@Autowired
 	private UserRepository repository;
 	
 	@GetMapping
-	@PreAuthorize("hasAuthority(manager:read)")
+	@PreAuthorize("hasAuthority('admin:read')")
 	public List<UserDTO> getAll(){
 		List users = new ArrayList<UserDTO>();
 		repository.findAll().stream().forEach(u -> {
-			UserDTO user = new UserDTO(u.getId(), u.getEmail(), u.getFirstname() + " " + u.getLastname(), u.getPhoneNumber(), u.getDateOfBirth(), u.getManagedBy());
+			UserDTO user = new UserDTO(u.getId(), u.getEmail(), u.getFirstname() + " " + u.getLastname(), u.getPhoneNumber(), u.getDateOfBirth(), u.getManagedBy(), u.getRole().name());
 			users.add(user);
 		});
 		return users;
@@ -39,7 +38,7 @@ public class UsersController {
 	public UserDTO get(@PathVariable int id) {
 		User fullUser = repository.getById(id);
 		if(fullUser != null) {
-			UserDTO user = new UserDTO(fullUser.getId(), fullUser.getEmail(), fullUser.getFirstname() + " " + fullUser.getLastname(), fullUser.getPhoneNumber(), fullUser.getDateOfBirth(), fullUser.getManagedBy());
+			UserDTO user = new UserDTO(fullUser.getId(), fullUser.getEmail(), fullUser.getFirstname() + " " + fullUser.getLastname(), fullUser.getPhoneNumber(), fullUser.getDateOfBirth(), fullUser.getManagedBy(), fullUser.getRole().name());
 			return user;
 		}
 		return null;
@@ -51,7 +50,7 @@ public class UsersController {
 		Optional<User> optionalUser = repository.findByEmail(email);
 		if(!optionalUser.isEmpty()) {
 			User fullUser = optionalUser.get();
-			UserDTO user = new UserDTO(fullUser.getId(), fullUser.getEmail(), fullUser.getFirstname() + " " + fullUser.getLastname(), fullUser.getPhoneNumber(), fullUser.getDateOfBirth(), fullUser.getManagedBy());
+			UserDTO user = new UserDTO(fullUser.getId(), fullUser.getEmail(), fullUser.getFirstname() + " " + fullUser.getLastname(), fullUser.getPhoneNumber(), fullUser.getDateOfBirth(), fullUser.getManagedBy(), fullUser.getRole().name());
 			return user;
 		}
 		return null;

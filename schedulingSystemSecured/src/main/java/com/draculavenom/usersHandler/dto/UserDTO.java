@@ -20,4 +20,5 @@ public class UserDTO {
 	private String phoneNumber;
 	private LocalDate dateOfBirth;
 	private Integer managedBy;
+	private String role;
 }
