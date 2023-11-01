@@ -14,10 +14,11 @@ import lombok.NoArgsConstructor;
 public class UserInputDTO {
 	private int id;
 	private String email;
-	private String firstname;
-	private String lastname;
+	private String firstName;
+	private String lastName;
 	private String password;
 	private String phoneNumber;
 	private LocalDate dateOfBirth;
 	private int managedBy;
+	private String role;
 }

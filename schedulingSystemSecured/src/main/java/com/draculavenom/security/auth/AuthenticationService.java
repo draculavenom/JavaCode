@@ -32,8 +32,8 @@ public class AuthenticationService {
   public AuthenticationResponse register(RegisterRequest request) {
     var user = User.builder()
     	.id(request.getId())
-        .firstname(request.getFirstname())
-        .lastname(request.getLastname())
+        .firstName(request.getFirstName())
+        .lastName(request.getLastName())
         .email(request.getEmail())
         .password(passwordEncoder.encode(request.getPassword()))
         .role(request.getRole())
@@ -50,8 +50,8 @@ public class AuthenticationService {
 
 	public AuthenticationResponse registerUser(UserInputDTO request) {
 		var user = User.builder()
-				.firstname(request.getFirstname())
-				.lastname(request.getLastname())
+				.firstName(request.getFirstName())
+				.lastName(request.getLastName())
 				.email(request.getEmail())
 				.password(passwordEncoder.encode(request.getPassword()))
 				.phoneNumber(request.getPhoneNumber())
