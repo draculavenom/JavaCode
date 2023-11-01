@@ -57,17 +57,10 @@ public class AppointmentController {
 		} catch (Exception e) {
 			return new ResponseEntity(e.getMessage(), HttpStatusCode.valueOf(400));
 		}
-//		return new ResponseEntity(repository.findById(ap.getId())
-//				.map((app) -> repository.save(new Appointment(0, ap.getUserId(), ap.getDate(), ap.getTime(), ap.getStatus())))
-//				.orElseGet(() -> repository.save(ap)), 
-//				HttpStatusCode.valueOf(200));
 	}
 	
 	@DeleteMapping("{id}")
 	public ResponseEntity<Appointment> cancel(@PathVariable Integer id) {
-		return new ResponseEntity<Appointment>(repository.findById(id)
-				.map((app) -> repository.save(app.cancelAppointment()))
-				.orElseThrow(),
-				HttpStatusCode.valueOf(200));
+		return new ResponseEntity<Appointment>(manager.getAppointmentAndCancelIt(id), HttpStatusCode.valueOf(200));
 	}
 }
