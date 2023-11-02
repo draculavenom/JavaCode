@@ -9,5 +9,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
   Optional<User> findByEmail(String email);
   
   Optional<List<User>> findAllByManagedBy(int userId);
+  
+  Optional<List<User>> getAllByRole(Role role);
 
 }

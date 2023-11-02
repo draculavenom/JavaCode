@@ -1,6 +1,7 @@
 package com.draculavenom.schedulingSystem.controller;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatusCode;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.draculavenom.schedulingSystem.dto.ManagerDTO;
 import com.draculavenom.schedulingSystem.model.ManagerOptions;
 import com.draculavenom.schedulingSystem.model.ManagerOptionsRepository;
+import com.draculavenom.security.user.Role;
 import com.draculavenom.security.user.User;
 import com.draculavenom.security.user.UserRepository;
 
@@ -43,7 +45,7 @@ public class ManagerController {
 			manager.setAmmountPaid(managerOptions.getAmmountPaid());
 			manager.setComments(managerOptions.getComments());		
 		}
-		return new ResponseEntity(manager, HttpStatusCode.valueOf(200));
+		return new ResponseEntity<ManagerDTO>(manager, HttpStatusCode.valueOf(200));
 	}
 	
 	@PostMapping
@@ -52,6 +54,17 @@ public class ManagerController {
 		ManagerOptions managerOptions = new ManagerOptions(0, manager.getAdminId(), manager.getManagerId(), manager.getAmmountPaid(), manager.getActiveDate(), manager.getComments());
 		managerOptions = managerRepository.save(managerOptions);
 		manager.setId(managerOptions.getId());
-		return new ResponseEntity(manager, HttpStatusCode.valueOf(200));
+		return new ResponseEntity<ManagerDTO>(manager, HttpStatusCode.valueOf(200));
+	}
+	
+	@GetMapping("/select")
+	public ResponseEntity<List<ManagerDTO>> getManagerSelect(){
+		List<User> list = repository.getAllByRole(Role.MANAGER).orElseThrow();
+		return new ResponseEntity<List<ManagerDTO>>(list.stream().map(u -> {
+			ManagerDTO manager = new ManagerDTO();
+			manager.setManagerId(u.getId());
+			manager.setName(u.getName());
+			return manager;
+		}).collect(Collectors.toList()), HttpStatusCode.valueOf(200));
 	}
 }
