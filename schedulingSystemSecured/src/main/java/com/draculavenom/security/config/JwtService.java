@@ -16,6 +16,8 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+import com.draculavenom.security.user.User;
+
 @Service
 @PropertySource(value={"classpath:application.yml"})
 public class JwtService {
@@ -31,37 +33,42 @@ public class JwtService {
     return extractClaim(token, Claims::getSubject);
   }
 
+  public String extractId(String token) {
+    return extractClaim(token, Claims::getId);
+  }
+
   public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
     final Claims claims = extractAllClaims(token);
     return claimsResolver.apply(claims);
   }
 
-  public String generateToken(UserDetails userDetails) {
+  public String generateToken(User userDetails) {
     return generateToken(new HashMap<>(), userDetails);
   }
 
   public String generateToken(
       Map<String, Object> extraClaims,
-      UserDetails userDetails
+      User userDetails
   ) {
     return buildToken(extraClaims, userDetails, jwtExpiration);
   }
 
   public String generateRefreshToken(
-      UserDetails userDetails
+      User userDetails
   ) {
     return buildToken(new HashMap<>(), userDetails, refreshExpiration);//456123 could be that I have to give the claims instead of an empty HashMap
   }
 
   private String buildToken(
           Map<String, Object> extraClaims,
-          UserDetails userDetails,
+          User userDetails,
           long expiration
   ) {
     return Jwts
             .builder()
             .setClaims(extraClaims)
             .setSubject(userDetails.getUsername())
+            .setId(userDetails.getId()+"")
             .setIssuedAt(new Date(System.currentTimeMillis()))
             .setExpiration(new Date(System.currentTimeMillis() + expiration))
             .signWith(getSignInKey(), SignatureAlgorithm.HS256)

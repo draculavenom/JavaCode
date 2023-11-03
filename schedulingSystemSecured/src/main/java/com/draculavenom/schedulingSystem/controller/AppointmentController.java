@@ -36,6 +36,11 @@ public class AppointmentController {
 		return new ResponseEntity<List<Appointment>>(repository.findAllByUserId(id), HttpStatusCode.valueOf(200));
 	}
 	
+	@GetMapping("/byManagerId/{id}")
+	public ResponseEntity<List<Appointment>> getAllByManagerId(@PathVariable Integer id){
+		return new ResponseEntity<List<Appointment>>(manager.getAppointmentsManagedByUserIdAllStatus(id), HttpStatusCode.valueOf(200));
+	}
+	
 	@GetMapping("{id}")
 	public ResponseEntity<Appointment> get(@PathVariable Integer id) {
 		return new ResponseEntity<Appointment>(repository.findById(id).orElse(null), HttpStatusCode.valueOf(200));
@@ -62,5 +67,10 @@ public class AppointmentController {
 	@DeleteMapping("{id}")
 	public ResponseEntity<Appointment> cancel(@PathVariable Integer id) {
 		return new ResponseEntity<Appointment>(manager.getAppointmentAndCancelIt(id), HttpStatusCode.valueOf(200));
+	}
+	
+	@PutMapping("/updateStatus")
+	public ResponseEntity<Appointment> updateStatus(@RequestBody Appointment ap) {
+		return new ResponseEntity<Appointment>(manager.updateStatus(ap.getId(), ap.getStatus()), HttpStatusCode.valueOf(200));
 	}
 }

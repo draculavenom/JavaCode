@@ -72,4 +72,17 @@ public class AppointmentManager {
 		}
 		return appointments;
 	}
+	
+	public List<Appointment> getAppointmentsManagedByUserIdAllStatus(int userId){
+		List<Appointment> appointments = repository.findAll();
+		List<User> users = userRepository.findAllByManagedBy(userId).orElseThrow();
+		appointments = appointments.stream().filter(a -> users.stream().map(u -> u.getId()).collect(Collectors.toList()).contains(a.getUserId())).collect(Collectors.toList());			
+		return appointments;
+	}
+	
+	public Appointment updateStatus(int id, AppointmentStatus status) {
+		Appointment appointment = repository.findById(id).orElseThrow();
+		appointment.setStatus(status);
+		return repository.save(appointment);
+	}
 }

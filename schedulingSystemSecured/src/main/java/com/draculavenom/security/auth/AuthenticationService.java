@@ -49,7 +49,7 @@ public class AuthenticationService {
   }
 
 	public AuthenticationResponse registerUser(UserInputDTO request) {
-		var user = User.builder()
+		User user = User.builder()
 				.firstName(request.getFirstName())
 				.lastName(request.getLastName())
 				.email(request.getEmail())
@@ -76,7 +76,7 @@ public class AuthenticationService {
             request.getPassword()
         )
     );
-    var user = repository.findByEmail(request.getEmail())
+    User user = repository.findByEmail(request.getEmail())
         .orElseThrow();
     var jwtToken = jwtService.generateToken(user);
     var refreshToken = jwtService.generateRefreshToken(user);
