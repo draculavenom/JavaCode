@@ -1,8 +1,8 @@
 spring:
   datasource:
     url: jdbc:mysql://localhost:3306/scheduling
-    username: root
-    password: QWErty4563
+    username: ---username---
+    password: ---password---
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
@@ -13,6 +13,17 @@ spring:
         format_sql: true
     database: mysql
     database-platform: org.hibernate.dialect.MySQLDialect
+  mail:
+  	host: smtp.gmail.com
+  	port: 587
+  	username: ---email---
+  	password: ---password---
+  	properties:
+  	  mail:
+  	  	smtp:
+  	  	  auth: true
+  	  	  starttls:
+  	  	  	enable: true
 
 application:
   security:
@@ -21,3 +32,4 @@ application:
       expiration: 86400000 # a day
       refresh-token:
         expiration: 604800000 # 7 days
+
