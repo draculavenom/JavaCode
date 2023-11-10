@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.draculavenom.schedulingSystem.manager.AppointmentManager;
 import com.draculavenom.schedulingSystem.model.Appointment;
 import com.draculavenom.schedulingSystem.model.AppointmentRepository;
+import com.draculavenom.schedulingSystem.utilities.EmailService;
 
 
 @RestController
@@ -26,6 +27,7 @@ public class AppointmentController {
 	
 	@Autowired private AppointmentRepository repository;
 	@Autowired private AppointmentManager manager;
+	@Autowired private EmailService emailService;
 	
 	@GetMapping
 	@PreAuthorize("hasAuthority('admin:read')")
@@ -75,5 +77,11 @@ public class AppointmentController {
 	@PutMapping("/updateStatus")
 	public ResponseEntity<Appointment> updateStatus(@RequestBody Appointment ap) {
 		return new ResponseEntity<Appointment>(manager.updateStatus(ap.getId(), ap.getStatus()), HttpStatusCode.valueOf(200));
+	}
+	
+	@GetMapping("/email")
+	public ResponseEntity<Boolean> sendEmail(){
+		emailService.sendSimpleMessage("antunez.jmf@gmail.com", "Test", "This is just a test to make sure the email service is working.");
+		return new ResponseEntity<Boolean>(true, HttpStatusCode.valueOf(200));
 	}
 }
