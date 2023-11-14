@@ -34,9 +34,9 @@ public class UsersController {
 	@GetMapping
 	@PreAuthorize("hasAuthority('admin:read')")
 	public List<UserDTO> getAll(){
-		List users = new ArrayList<UserDTO>();
+		List<UserDTO> users = new ArrayList<UserDTO>();
 		repository.findAll().stream().forEach(u -> {
-			UserDTO user = new UserDTO(u.getId(), u.getEmail(), u.getFirstName() + " " + u.getLastName(), u.getPhoneNumber(), u.getDateOfBirth(), u.getManagedBy(), u.getRole().name());
+			UserDTO user = new UserDTO(u.getId(), u.getEmail(), u.getFirstName() + " " + u.getLastName(), u.getPhoneNumber(), u.getDateOfBirth(), u.getManagedBy(), u.getRole().name(), u.getPasswordChange());
 			users.add(user);
 		});
 		return users;
@@ -59,7 +59,7 @@ public class UsersController {
 		Optional<User> optionalUser = repository.findByEmail(email);
 		if(!optionalUser.isEmpty()) {
 			User fullUser = optionalUser.get();
-			UserDTO user = new UserDTO(fullUser.getId(), fullUser.getEmail(), fullUser.getFirstName() + " " + fullUser.getLastName(), fullUser.getPhoneNumber(), fullUser.getDateOfBirth(), fullUser.getManagedBy(), fullUser.getRole().name());
+			UserDTO user = new UserDTO(fullUser.getId(), fullUser.getEmail(), fullUser.getFirstName() + " " + fullUser.getLastName(), fullUser.getPhoneNumber(), fullUser.getDateOfBirth(), fullUser.getManagedBy(), fullUser.getRole().name(), fullUser.getPasswordChange());
 			return user;
 		}
 		return null;
@@ -111,5 +111,15 @@ public class UsersController {
 		user.setManagedBy(fullUser.getManagedBy());
 		user.setRole(fullUser.getRole().name());
 		return new ResponseEntity<UserInputDTO>(user, HttpStatusCode.valueOf(200));
+	}
+	
+	@GetMapping("/resetPassword/{id}")
+	public ResponseEntity<Boolean> resetPassword(@PathVariable int id){
+		return new ResponseEntity<Boolean>(manager.resetPassword(id), HttpStatusCode.valueOf(200));
+	}
+	
+	@PutMapping("/passwordChange")
+	public ResponseEntity<Boolean> passwordChange(@RequestBody User user){
+		return new ResponseEntity<Boolean>(manager.passwordChange(user), HttpStatusCode.valueOf(200));
 	}
 }

@@ -21,4 +21,5 @@ public class UserDTO {
 	private LocalDate dateOfBirth;
 	private Integer managedBy;
 	private String role;
+	private Boolean passwordChange;
 }

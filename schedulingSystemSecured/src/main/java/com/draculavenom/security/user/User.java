@@ -47,6 +47,7 @@ public class User implements UserDetails {
   @Column(nullable = true)
   private LocalDate dateOfBirth;
   private Integer managedBy;
+  private Boolean passwordChange;
 
   @Enumerated(EnumType.STRING)
   private Role role;
