@@ -69,6 +69,7 @@ public class UsersController {
 	@PreAuthorize("hasAuthority('admin:create')")
 	public ResponseEntity<UserInputDTO> create(@RequestBody UserInputDTO user) {
 		User fullUser = manager.create(user);
+		manager.resetPassword(fullUser.getId());
 		user.setId(fullUser.getId());
 		user.setFirstName(fullUser.getFirstName());
 		user.setLastName(fullUser.getLastName());
