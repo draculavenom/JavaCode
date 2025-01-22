@@ -47,7 +47,7 @@ public class UsersController {
 	public UserInputDTO get(@PathVariable int id) {
 		User fullUser = repository.getById(id);
 		if(fullUser != null) {
-			UserInputDTO user = new UserInputDTO(fullUser.getId(), fullUser.getEmail(), fullUser.getFirstName(), fullUser.getLastName(), "", fullUser.getPhoneNumber(), fullUser.getDateOfBirth(), fullUser.getManagedBy(), fullUser.getRole().name());
+			UserInputDTO user = new UserInputDTO(fullUser.getId(), fullUser.getEmail(), fullUser.getFirstName(), fullUser.getLastName(), "", fullUser.getPhoneNumber(), fullUser.getDateOfBirth(), (int) (fullUser.getManagedBy() != null ? fullUser.getManagedBy() : 0), fullUser.getRole().name());
 			return user;
 		}
 		return null;

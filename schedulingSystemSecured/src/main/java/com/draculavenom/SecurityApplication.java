@@ -22,6 +22,9 @@ public class SecurityApplication {
 		SpringApplication.run(SecurityApplication.class, args);
 	}
 	
+	//DV Notes: For the first time running the application, there won't be any admin user to start creating everything else.
+	//There is a method AuthenticationController.registerAdmin that is commented, you need to allow it to create the first user
+	
 	/*@Bean
 	public WebMvcConfigurer corsConfigurer() {
 		return new WebMvcConfigurer() {

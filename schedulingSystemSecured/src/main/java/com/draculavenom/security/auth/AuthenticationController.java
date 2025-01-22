@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.draculavenom.security.user.Role;
 import com.draculavenom.usersHandler.dto.UserDTO;
 import com.draculavenom.usersHandler.dto.UserInputDTO;
 
@@ -28,10 +29,17 @@ public class AuthenticationController {
     return ResponseEntity.ok(service.register(request));
   }*/
   
-  	@PostMapping("/registerUser")
+	@PostMapping("/registerUser")
 	public ResponseEntity<AuthenticationResponse> registerUser(@RequestBody UserInputDTO request) {
 		return ResponseEntity.ok(service.registerUser(request));
 	}
+  
+//  @PostMapping("/registerAdmin")//This method allows me to create the admin user to start using the app. if there is no admin user in the database, nothing will work.
+//	public ResponseEntity<AuthenticationResponse> registerAdmin(@RequestBody RegisterRequest request) {
+//  		if(request.getRole() == Role.ADMIN && request.getEmail().equals("admin@admin.com"))//It will only work if the role is ADMIN and the email is: admin@admin.com
+//  			return ResponseEntity.ok(service.register(request));
+//  		return null;
+//	}
   
   @PostMapping("/authenticate")
   public ResponseEntity<AuthenticationResponse> authenticate(

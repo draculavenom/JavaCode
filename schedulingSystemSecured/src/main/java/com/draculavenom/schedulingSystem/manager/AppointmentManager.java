@@ -25,7 +25,7 @@ public class AppointmentManager {
 		List<Appointment> appointments = getAppointmentsManagedByUserId(ap.getUserId());
 		if(appointments.stream().filter(a -> a.getDate().equals(ap.getDate()) && a.getTime().equals(ap.getTime())).findFirst().isEmpty()) {
 			if((ap.getDate().isBefore(LocalDate.now())) || (ap.getDate().equals(LocalDate.now()) && ap.getTime().isBefore(LocalTime.now())))
-				throw new Exception("You can schedule appointments in the past. Please select a valid option");
+				throw new Exception("You can't schedule appointments in the past. Please select a valid option");
 			else
 				return repository.save(ap);
 		}else
@@ -36,7 +36,7 @@ public class AppointmentManager {
 		List<Appointment> appointments = getAppointmentsManagedByUserId(ap.getUserId());
 		if(appointments.stream().filter(a -> a.getDate().equals(ap.getDate()) && a.getTime().equals(ap.getTime())).findFirst().isEmpty()) {
 			if((ap.getDate().isBefore(LocalDate.now())) || (ap.getDate().equals(LocalDate.now()) && ap.getTime().isBefore(LocalTime.now())))
-				throw new Exception("You can schedule appointments in the past. Please select a valid option");
+				throw new Exception("You can't schedule appointments in the past. Please select a valid option");
 			else{
 				Appointment a = repository.findById(ap.getId()).orElseThrow(Exception::new);
 				a.setDate(ap.getDate());
