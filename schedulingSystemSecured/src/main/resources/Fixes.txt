@@ -1,3 +1,0 @@
-The users are able to access every URL by directly typing it in the browser, I need to validate depending on the role 
-	if that user is allowed to access that URL or not
-
