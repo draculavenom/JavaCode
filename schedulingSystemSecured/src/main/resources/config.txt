@@ -14,16 +14,16 @@ spring:
     database: mysql
     database-platform: org.hibernate.dialect.MySQLDialect
   mail:
-  	host: smtp.gmail.com
-  	port: 587
-  	username: ---email---
-  	password: ---password---
-  	properties:
-  	  mail:
-  	  	smtp:
-  	  	  auth: true
-  	  	  starttls:
-  	  	  	enable: true
+    host: smtp.gmail.com
+    port: 587
+    username: ---email---
+    password: ---password---
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
 
 application:
   security:
