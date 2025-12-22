@@ -36,7 +36,7 @@ public class SecurityApplication {
 		};
 	}*/
 
-	@Bean
+	/*@Bean
 	public CommandLineRunner commandLineRunner(//This bean can create by default two users with admin and manager roles.
 			AuthenticationService service
 	) {
@@ -51,8 +51,8 @@ public class SecurityApplication {
 			System.out.println("Admin token: " + service.register(admin).getAccessToken());
 
 			var manager = RegisterRequest.builder()
-					.firstName("Admin")
-					.lastName("Admin")
+					.firstName("Manager1")
+					.lastName("Manager1")
 					.email("manager@mail.com")
 					.password("password")
 					.role(MANAGER)
@@ -60,5 +60,5 @@ public class SecurityApplication {
 			System.out.println("Manager token: " + service.register(manager).getAccessToken());
 
 		};
-	}
+	}*/
 }
