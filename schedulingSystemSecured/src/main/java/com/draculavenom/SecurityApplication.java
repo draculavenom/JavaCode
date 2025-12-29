@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 import com.draculavenom.security.auth.AuthenticationService;
 import com.draculavenom.security.auth.RegisterRequest;
@@ -16,6 +17,7 @@ import static com.draculavenom.security.user.Role.ADMIN;
 import static com.draculavenom.security.user.Role.MANAGER;
 
 @SpringBootApplication
+@EnableScheduling
 public class SecurityApplication {
 
 	public static void main(String[] args) {
@@ -36,7 +38,7 @@ public class SecurityApplication {
 		};
 	}*/
 
-	@Bean
+	/*@Bean
 	public CommandLineRunner commandLineRunner(//This bean can create by default two users with admin and manager roles.
 			AuthenticationService service
 	) {
@@ -60,5 +62,5 @@ public class SecurityApplication {
 			System.out.println("Manager token: " + service.register(manager).getAccessToken());
 
 		};
-	}
+	}*/
 }

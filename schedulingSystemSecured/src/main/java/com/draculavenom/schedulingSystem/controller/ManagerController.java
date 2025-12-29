@@ -2,6 +2,7 @@ package com.draculavenom.schedulingSystem.controller;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.ArrayList;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatusCode;
@@ -20,6 +21,7 @@ import com.draculavenom.schedulingSystem.model.ManagerOptionsRepository;
 import com.draculavenom.security.user.Role;
 import com.draculavenom.security.user.User;
 import com.draculavenom.security.user.UserRepository;
+import com.draculavenom.usersHandler.dto.UserDTO;
 
 @RestController
 @RequestMapping("/api/v1/Manager")
@@ -66,5 +68,23 @@ public class ManagerController {
 			manager.setName(u.getName());
 			return manager;
 		}).collect(Collectors.toList()), HttpStatusCode.valueOf(200));
+	}
+
+	@GetMapping("/{managerId}/persons")
+	@PreAuthorize("hasAuthority('manager:read')")
+	public List<UserDTO> getPersonsByManager(@PathVariable Integer managerId){
+		List<User> users = repository.findAllByManagedBy(managerId).orElse(new ArrayList<>());
+		return users.stream()
+            .map(u -> UserDTO.builder()
+				.id(u.getId())
+				.name(u.getFirstName() + " " + u.getLastName()) 
+				.email(u.getEmail())
+				.phoneNumber(u.getPhoneNumber())
+				.dateOfBirth(u.getDateOfBirth())
+				.managedBy(u.getManagedBy())
+				.role(u.getRole().name()) 
+				.passwordChange(u.getPasswordChange())
+				.build())
+			.collect(Collectors.toList());					
 	}
 }
