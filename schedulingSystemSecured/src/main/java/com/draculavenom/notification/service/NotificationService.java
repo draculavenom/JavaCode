@@ -1,5 +1,7 @@
 package com.draculavenom.notification.service;
 
+import java.time.LocalDate;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +18,7 @@ public class NotificationService {
     @Autowired private AppointmentNotificationService appointmentNotificationService;
     @Autowired private UserRepository userRepository;
     @Autowired private IncorporationCredentialService incorporationCredentialService;
+    @Autowired private ManagerNotificationService managerNotificationService;
 
     public NotificationService(NotificationSettingsService settingsService, AppointmentNotificationService appointmentNotificationService, UserRepository userRepository){
         this.settingsService = settingsService;
@@ -57,6 +60,14 @@ public class NotificationService {
         }catch(Exception e){
             System.err.println("Error sending appointment confirmed: " + e.getMessage());
         }
+    }
+
+    public void notifySubscriptionReminder(User manager, LocalDate expirationDate, long daysLeft){
+        try{
+            managerNotificationService.sendSubscriptionReminder(manager, expirationDate, daysLeft);    
+        }catch(Exception e){
+            System.err.println("Error sending subscription expired email: " + e.getMessage());
+        } 
     }
 
 }

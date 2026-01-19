@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.draculavenom.company.CompanyName;
+import com.draculavenom.company.CompanyNameRepository;
 import com.draculavenom.schedulingSystem.dto.ManagerDTO;
 import com.draculavenom.schedulingSystem.model.ManagerOptions;
 import com.draculavenom.schedulingSystem.model.ManagerOptionsRepository;
@@ -29,6 +31,7 @@ public class ManagerController {
 	
 	@Autowired private ManagerOptionsRepository managerRepository;
 	@Autowired private UserRepository repository;
+	@Autowired private CompanyNameRepository companyNameRepository;
 	
 	@GetMapping("{id}")
 	@PreAuthorize("hasAuthority('admin:read')")
@@ -36,6 +39,7 @@ public class ManagerController {
 		ManagerDTO manager = new ManagerDTO();
 		User userManager = repository.getById(id);
 		manager.setName(userManager.getFirstName() + " " + userManager.getLastName());
+		companyNameRepository.findByUserId(id).ifPresent(c -> manager.setCompanyName(c.getNameCompany()));
 		manager.setManagerId(id);
 		List<ManagerOptions> managerOptionsList = managerRepository.findAllByManagerId(id);
 		if(managerOptionsList.size() > 0) {
@@ -56,6 +60,11 @@ public class ManagerController {
 		ManagerOptions managerOptions = new ManagerOptions(0, manager.getAdminId(), manager.getManagerId(), manager.getAmmountPaid(), manager.getActiveDate(), manager.getComments());
 		managerOptions = managerRepository.save(managerOptions);
 		manager.setId(managerOptions.getId());
+		if(manager.getCompanyName() != null && !manager.getCompanyName().isBlank()){
+			User managerUser = repository.getById(manager.getManagerId());
+			CompanyName companyName = new CompanyName(manager.getCompanyName(), managerUser);
+			companyNameRepository.save(companyName);
+		}
 		return new ResponseEntity<ManagerDTO>(manager, HttpStatusCode.valueOf(200));
 	}
 	

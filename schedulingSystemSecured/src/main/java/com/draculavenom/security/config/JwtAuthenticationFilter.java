@@ -1,6 +1,7 @@
 package com.draculavenom.security.config;
 
 import com.draculavenom.security.token.TokenRepository;
+import com.draculavenom.security.user.Role;
 import com.draculavenom.security.user.User;
 
 import jakarta.servlet.FilterChain;
@@ -18,6 +19,7 @@ import java.util.Map;
 import jakarta.transaction.TransactionScoped;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -27,6 +29,8 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.draculavenom.schedulingSystem.controller.ManagerOptionsService;
+
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -34,6 +38,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
   private final JwtService jwtService;
   private final UserDetailsService userDetailsService;
   private final TokenRepository tokenRepository;
+  private final ManagerOptionsService optionsService;
 
   @Override
   protected void doFilterInternal(
@@ -80,6 +85,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             new WebAuthenticationDetailsSource().buildDetails(request)
         );
         SecurityContextHolder.getContext().setAuthentication(authToken);
+
+        User user = (User) userDetails;
+        if (user.getRole() == Role.MANAGER) {
+          boolean active = optionsService.isManagerActive(user.getId());
+          if(!active){
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.getWriter().write("SUBSCRIPTION_EXPIRED");
+            return;
+          }
+        }
       }
     }
     filterChain.doFilter(request, response);
