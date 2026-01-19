@@ -65,7 +65,9 @@ public class ManagerController {
 		return new ResponseEntity<List<ManagerDTO>>(list.stream().map(u -> {
 			ManagerDTO manager = new ManagerDTO();
 			manager.setManagerId(u.getId());
-			manager.setName(u.getName());
+			manager.setName(u.getCompanyName() != null 
+				? u.getCompanyName().getNameCompany() 
+				: "WITHOUT COMPANY");
 			return manager;
 		}).collect(Collectors.toList()), HttpStatusCode.valueOf(200));
 	}

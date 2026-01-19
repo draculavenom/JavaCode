@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.draculavenom.notification.service.NotificationService;
 import com.draculavenom.security.config.JwtService;
 import com.draculavenom.security.user.User;
 import com.draculavenom.security.user.UserRepository;
@@ -30,6 +31,8 @@ public class UsersController {
 	@Autowired private UserRepository repository;
 	@Autowired private UsersManager manager;
 	@Autowired private JwtService jwtService;
+	@Autowired private NotificationService notificationService;
+
 	
 	@GetMapping
 	@PreAuthorize("hasAuthority('admin:read')")
@@ -78,7 +81,10 @@ public class UsersController {
 		user.setDateOfBirth(fullUser.getDateOfBirth());
 		user.setManagedBy(fullUser.getManagedBy());
 		user.setRole(fullUser.getRole().name());
+		
+		notificationService.notifyIncorporationCredentials(fullUser);
 		return new ResponseEntity<UserInputDTO>(user, HttpStatusCode.valueOf(200));
+
 	}
 	
 	@PutMapping
