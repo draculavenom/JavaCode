@@ -1,5 +1,6 @@
 package com.draculavenom.security.user;
 
+import com.draculavenom.company.CompanyName;
 import com.draculavenom.security.token.Token;
 
 import jakarta.persistence.Column;
@@ -9,11 +10,13 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -23,6 +26,8 @@ import lombok.ToString;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+
+import jakarta.persistence.FetchType;
 
 @Getter
 @Setter
@@ -55,6 +60,9 @@ public class User implements UserDetails {
   @OneToMany(mappedBy = "user")
   @ToString.Exclude
   private List<Token> tokens;
+
+  @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
+  private CompanyName companyName;
 
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {

@@ -9,25 +9,38 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
+import com.draculavenom.notification.service.NotificationService;
 import com.draculavenom.schedulingSystem.model.Appointment;
 import com.draculavenom.schedulingSystem.model.AppointmentRepository;
 import com.draculavenom.schedulingSystem.model.AppointmentStatus;
 import com.draculavenom.security.user.User;
 import com.draculavenom.security.user.UserRepository;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Controller
 public class AppointmentManager {
 
 	@Autowired private AppointmentRepository repository;
 	@Autowired private UserRepository userRepository;
+	@Autowired private NotificationService notificationService;
 	
 	public Appointment create(Appointment ap) throws Exception{
 		List<Appointment> appointments = getAppointmentsManagedByUserId(ap.getUserId());
 		if(appointments.stream().filter(a -> a.getDate().equals(ap.getDate()) && a.getTime().equals(ap.getTime())).findFirst().isEmpty()) {
-			if((ap.getDate().isBefore(LocalDate.now())) || (ap.getDate().equals(LocalDate.now()) && ap.getTime().isBefore(LocalTime.now())))
+			if((ap.getDate().isBefore(LocalDate.now())) || (ap.getDate().equals(LocalDate.now()) && ap.getTime().isBefore(LocalTime.now()))) {
 				throw new Exception("You can't schedule appointments in the past. Please select a valid option");
-			else
-				return repository.save(ap);
+			} else {
+				Appointment saved = repository.save(ap);
+				try {
+					notificationService.notifyAppointmentCreated(saved);
+				} catch (Exception e) {
+					log.error("Error sending notification", e);
+				}
+				return saved;
+
+			}
 		}else
 			throw new Exception("That slot is already been scheduled, please try again with a different slot");
 	}
@@ -83,6 +96,12 @@ public class AppointmentManager {
 	public Appointment updateStatus(int id, AppointmentStatus status) {
 		Appointment appointment = repository.findById(id).orElseThrow();
 		appointment.setStatus(status);
-		return repository.save(appointment);
+		Appointment saved = repository.save(appointment);
+		try{
+			notificationService.notifyAppointmentStatusChanged(saved, status);
+		}catch(Exception e){
+			log.error("Error sending appointmenr status notification", e);
+		}
+		return saved;
 	}
 }

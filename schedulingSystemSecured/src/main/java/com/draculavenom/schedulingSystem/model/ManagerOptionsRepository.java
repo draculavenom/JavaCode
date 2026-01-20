@@ -9,4 +9,6 @@ public interface ManagerOptionsRepository extends JpaRepository<ManagerOptions, 
 	//public ManagerOptions findTopbyManagerIdOrderByIdDesc(int id);
 	
 	public List<ManagerOptions> findAllByManagerId(int id);
+
+	ManagerOptions findTopByManagerIdOrderByActiveDateDesc(int managerId);
 }
