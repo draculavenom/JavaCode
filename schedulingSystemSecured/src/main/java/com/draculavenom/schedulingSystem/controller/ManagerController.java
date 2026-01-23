@@ -98,4 +98,20 @@ public class ManagerController {
 				.build())
 			.collect(Collectors.toList());					
 	}
+	
+	@GetMapping("/{managerId}/options")
+	@PreAuthorize("hasAuthority('admin:read')")
+	public List<ManagerDTO> getManagerOptions(@PathVariable Integer managerId) {
+		List<ManagerOptions> managerOptions = managerRepository.findAllByManagerId(managerId);
+		return managerOptions.stream()
+			.map(o -> ManagerDTO.builder()
+				.id(o.getId())
+				.managerId(o.getManagerId())
+				.adminId(o.getUserId())
+				.ammountPaid(o.getAmmountPaid())
+				.activeDate(o.getActiveDate())
+				.comments(o.getComments())
+				.build())
+			.collect(Collectors.toList());
+	}
 }
