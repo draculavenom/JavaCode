@@ -9,16 +9,23 @@ import com.draculavenom.security.user.User;
 import com.draculavenom.security.user.UserRepository;
 import com.draculavenom.usersHandler.dto.UserInputDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+
+import org.springframework.web.server.ResponseStatusException;
+
+import com.draculavenom.schedulingSystem.controller.ManagerOptionsService;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +35,7 @@ public class AuthenticationService {
   private final PasswordEncoder passwordEncoder;
   private final JwtService jwtService;
   private final AuthenticationManager authenticationManager;
+  private final ManagerOptionsService optionsService;
 
   public AuthenticationResponse register(RegisterRequest request) {
     var user = User.builder()
@@ -78,6 +86,13 @@ public class AuthenticationService {
     );
     User user = repository.findByEmail(request.getEmail())
         .orElseThrow();
+    
+    if(user.getRole() == Role.MANAGER) {
+      boolean active = optionsService.isManagerActive(user.getId());
+      if(!active) {
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "SUBSCRIPTION_EXPIRED");
+      }
+    }
     var jwtToken = jwtService.generateToken(user);
     var refreshToken = jwtService.generateRefreshToken(user);
     revokeAllUserTokens(user);

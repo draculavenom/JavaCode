@@ -29,7 +29,6 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.draculavenom.schedulingSystem.controller.ManagerOptionsService;
 
 @Component
 @RequiredArgsConstructor
@@ -38,7 +37,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
   private final JwtService jwtService;
   private final UserDetailsService userDetailsService;
   private final TokenRepository tokenRepository;
-  private final ManagerOptionsService optionsService;
 
   @Override
   protected void doFilterInternal(
@@ -85,16 +83,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             new WebAuthenticationDetailsSource().buildDetails(request)
         );
         SecurityContextHolder.getContext().setAuthentication(authToken);
-
-        User user = (User) userDetails;
-        if (user.getRole() == Role.MANAGER) {
-          boolean active = optionsService.isManagerActive(user.getId());
-          if(!active){
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-            response.getWriter().write("SUBSCRIPTION_EXPIRED");
-            return;
-          }
-        }
       }
     }
     filterChain.doFilter(request, response);
