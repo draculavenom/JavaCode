@@ -20,10 +20,11 @@ public class NotificationService {
     @Autowired private IncorporationCredentialService incorporationCredentialService;
     @Autowired private ManagerNotificationService managerNotificationService;
 
-    public NotificationService(NotificationSettingsService settingsService, AppointmentNotificationService appointmentNotificationService, UserRepository userRepository){
+    public NotificationService(NotificationSettingsService settingsService, AppointmentNotificationService appointmentNotificationService, UserRepository userRepository, IncorporationCredentialService incorporationCredentialService){
         this.settingsService = settingsService;
         this.appointmentNotificationService = appointmentNotificationService;
         this.userRepository = userRepository;
+        this.incorporationCredentialService = incorporationCredentialService;
     }
 
     public void notifyAppointmentCreated(Appointment appointment){
@@ -44,9 +45,9 @@ public class NotificationService {
         appointmentNotificationService.sendAppointmentCreated(manager, appointment);
     }
 
-    public void notifyIncorporationCredentials(User manager){
+    public void notifyIncorporationCredentials(User manager, String temporaryPassword){
         try{
-            incorporationCredentialService.sendIncorporationCredential(manager);    
+            incorporationCredentialService.sendIncorporationCredential(manager, temporaryPassword);    
         }catch(Exception e){
             System.err.println("Error sending incorporation email: " + e.getMessage());
         }        
