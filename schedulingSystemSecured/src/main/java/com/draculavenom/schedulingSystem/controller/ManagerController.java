@@ -11,12 +11,15 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.draculavenom.company.CompanyName;
 import com.draculavenom.company.CompanyNameRepository;
+import com.draculavenom.schedulingSystem.dto.CompanyNameDTO;
 import com.draculavenom.schedulingSystem.dto.ManagerDTO;
 import com.draculavenom.schedulingSystem.model.ManagerOptions;
 import com.draculavenom.schedulingSystem.model.ManagerOptionsRepository;
@@ -67,6 +70,28 @@ public class ManagerController {
 		}
 		return new ResponseEntity<ManagerDTO>(manager, HttpStatusCode.valueOf(200));
 	}
+
+	@PutMapping("{managerId}/company")
+	@PreAuthorize("hasAuthority('admin:update')")
+	public ResponseEntity<Void> updateCompany(@PathVariable Integer managerId, @RequestBody CompanyNameDTO dto) {
+		if(dto.getCompanyName() == null || dto.getCompanyName().isBlank()) {
+			return ResponseEntity.badRequest().build();
+		}
+
+		User manager = repository.findById(managerId).orElseThrow(() -> new RuntimeException("User not found"));
+
+		CompanyName companyName = companyNameRepository.findByUserId(manager.getId()).orElse(null);
+
+		if(companyName == null) {
+			companyName = new CompanyName(dto.getCompanyName(), manager);
+		}else{
+			companyName.setNameCompany(dto.getCompanyName());
+		}
+		companyNameRepository.save(companyName);
+
+		return ResponseEntity.ok().build();
+	}
+	
 	
 	@GetMapping("/select")
 	public ResponseEntity<List<ManagerDTO>> getManagerSelect(){
