@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.draculavenom.schedulingSystem.dto.AppointmentResponseDTO;
 import com.draculavenom.schedulingSystem.manager.AppointmentManager;
 import com.draculavenom.schedulingSystem.model.Appointment;
 import com.draculavenom.schedulingSystem.model.AppointmentRepository;
@@ -28,11 +29,12 @@ public class AppointmentController {
 	@Autowired private AppointmentRepository repository;
 	@Autowired private AppointmentManager manager;
 	@Autowired private EmailService emailService;
+	@Autowired private AppointmentService appointmentService;
 	
 	@GetMapping
 	@PreAuthorize("hasAuthority('admin:read')")
-	public ResponseEntity<List<Appointment>> getAll(){
-		return new ResponseEntity<List<Appointment>>(repository.findAll(), HttpStatusCode.valueOf(200));
+	public ResponseEntity<List<AppointmentResponseDTO>> getAll(){
+		return ResponseEntity.ok(appointmentService.getAllWithCompany());
 	}
 	
 	@GetMapping("/byUserId/{id}")

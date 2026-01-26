@@ -14,7 +14,7 @@ public class IncorporationCredentialService {
         this.emailService = emailService;
     }
 
-    public void sendIncorporationCredential(User manager){
+    public void sendIncorporationCredential(User manager, String temporaryPassword){
         String subject = "Welcome to the system";
 
         String body = """
@@ -22,11 +22,12 @@ public class IncorporationCredentialService {
 
             Your manager account has been created successfully.
 
-            Your temporary password is: password
+            Your temporary password is: %s
             
             Please log in and change your password as soon as possible.
             """.formatted(
-                manager.getName()
+                manager.getName(),
+                temporaryPassword
             );
 
             emailService.sendSimpleMessage(manager.getEmail(), subject, body);
