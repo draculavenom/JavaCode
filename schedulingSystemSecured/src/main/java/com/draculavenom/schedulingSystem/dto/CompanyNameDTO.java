@@ -12,5 +12,6 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CompanyNameDTO {
+    private Integer managerId;
     private String companyName;
 }
