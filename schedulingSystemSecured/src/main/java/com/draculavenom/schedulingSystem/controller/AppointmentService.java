@@ -3,6 +3,7 @@ package com.draculavenom.schedulingSystem.controller;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,10 +54,12 @@ public class AppointmentService {
             dto.setStatus(appointment.getStatus());
             dto.setUserId(user.getId());
 
-            if(manager != null) {
-                dto.setManagerId(manager.getId());
-                dto.setCompanyName(company.getNameCompany());
-            }
+            String companyName = Optional.ofNullable(manager)
+                .map(User::getCompanyName)
+                .map(CompanyName::getNameCompany)
+                .orElse("");
+
+            dto.setCompanyName(companyName);
 
             response.add(dto);
         }

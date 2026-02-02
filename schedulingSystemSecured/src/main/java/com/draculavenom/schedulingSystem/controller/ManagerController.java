@@ -73,8 +73,8 @@ public class ManagerController {
 
 	@PutMapping("{managerId}/company")
 	@PreAuthorize("hasAuthority('admin:update')")
-	public ResponseEntity<Void> updateCompany(@PathVariable Integer managerId, @RequestBody CompanyNameDTO dto) {
-		if(dto.getCompanyName() == null || dto.getCompanyName().isBlank()) {
+	public ResponseEntity<Void> updateCompany(@PathVariable Integer managerId, @RequestBody CompanyNameDTO companyDTO) {
+		if(companyDTO.getCompanyName() == null || companyDTO.getCompanyName().isBlank()) {
 			return ResponseEntity.badRequest().build();
 		}
 
@@ -83,9 +83,9 @@ public class ManagerController {
 		CompanyName companyName = companyNameRepository.findByUserId(manager.getId()).orElse(null);
 
 		if(companyName == null) {
-			companyName = new CompanyName(dto.getCompanyName(), manager);
+			companyName = new CompanyName(companyDTO.getCompanyName(), manager);
 		}else{
-			companyName.setNameCompany(dto.getCompanyName());
+			companyName.setNameCompany(companyDTO.getCompanyName());
 		}
 		companyNameRepository.save(companyName);
 
@@ -139,4 +139,23 @@ public class ManagerController {
 				.build())
 			.collect(Collectors.toList());
 	}
+
+	@GetMapping("/company")
+	@PreAuthorize("hasAuthority('admin:read')")
+	public ResponseEntity<List<CompanyNameDTO>> getManagerCompany() {
+		List<CompanyNameDTO> result = repository.getAllByRole(Role.MANAGER)
+			.orElseThrow()
+			.stream()
+			.filter(u -> u.getCompanyName() != null)
+			.map(u -> {
+				CompanyNameDTO companyDTO = new CompanyNameDTO();
+				companyDTO.setManagerId(u.getId());
+				companyDTO.setCompanyName(u.getCompanyName().getNameCompany());
+				return companyDTO;
+			})
+			.collect(Collectors.toList());
+			
+		return ResponseEntity.ok(result);
+	}
+	
 }
