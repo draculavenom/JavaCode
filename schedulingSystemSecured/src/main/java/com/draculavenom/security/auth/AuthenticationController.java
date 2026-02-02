@@ -8,12 +8,16 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
+
 
 import com.draculavenom.security.user.Role;
 import com.draculavenom.usersHandler.dto.UserDTO;
 import com.draculavenom.usersHandler.dto.UserInputDTO;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -42,11 +46,22 @@ public class AuthenticationController {
 //	}
   
   @PostMapping("/authenticate")
-  public ResponseEntity<AuthenticationResponse> authenticate(
+  public ResponseEntity<?> authenticate(
       @RequestBody AuthenticationRequest request
   ) {
-    return ResponseEntity.ok(service.authenticate(request));
+    try{
+      return ResponseEntity.ok(service.authenticate(request));
+    } catch (ResponseStatusException ex){
+      Map<String, String> errorBody = new HashMap<>();
+      errorBody.put("message", ex.getReason());
+      return ResponseEntity.status(ex.getStatusCode()).body(errorBody);
+    }
+    catch (Exception ex){
+      Map<String, String> errorBody = new HashMap<>();
+      errorBody.put("message", "INVALID_CREDENTIALS");
+      return ResponseEntity.status(401).body(errorBody);
   }
+}
 
   @PostMapping("/refresh-token")
   public void refreshToken(

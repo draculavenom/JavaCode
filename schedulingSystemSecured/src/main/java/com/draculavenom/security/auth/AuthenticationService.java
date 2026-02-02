@@ -78,21 +78,24 @@ public class AuthenticationService {
 	}
 
   public AuthenticationResponse authenticate(AuthenticationRequest request) {
+
+    var user= repository.findByEmail(request.getEmail())
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "USER_NOT_FOUND"));
+
+    
+    if(user.getRole() == Role.MANAGER) {
+      boolean active = optionsService.isManagerActive(user.getId());
+      if(!active) {
+        System.out.println(" Subscription expired for manager id: " + user.getEmail());
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "SUBSCRIPTION_EXPIRED");
+      }
+    }
     authenticationManager.authenticate(
         new UsernamePasswordAuthenticationToken(
             request.getEmail(),
             request.getPassword()
         )
     );
-    User user = repository.findByEmail(request.getEmail())
-        .orElseThrow();
-    
-    if(user.getRole() == Role.MANAGER) {
-      boolean active = optionsService.isManagerActive(user.getId());
-      if(!active) {
-        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "SUBSCRIPTION_EXPIRED");
-      }
-    }
     var jwtToken = jwtService.generateToken(user);
     var refreshToken = jwtService.generateRefreshToken(user);
     revokeAllUserTokens(user);
