@@ -9,12 +9,22 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+import com.draculavenom.company.CompanyName;
+import com.draculavenom.company.CompanyNameRepository;
+import com.draculavenom.schedulingSystem.model.ManagerOptions;
+import com.draculavenom.schedulingSystem.model.ManagerOptionsRepository;
 import com.draculavenom.security.auth.AuthenticationService;
 import com.draculavenom.security.auth.RegisterRequest;
+import com.draculavenom.security.user.User;
+import com.draculavenom.security.user.UserRepository;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import static com.draculavenom.security.user.Role.ADMIN;
 import static com.draculavenom.security.user.Role.MANAGER;
+
+import java.time.LocalDate;
 
 @SpringBootApplication
 @EnableScheduling
@@ -40,7 +50,10 @@ public class SecurityApplication {
 
 	/*@Bean
 	public CommandLineRunner commandLineRunner(//This bean can create by default two users with admin and manager roles.
-			AuthenticationService service
+			AuthenticationService service,
+			UserRepository userRepository,
+            CompanyNameRepository companyRepository,
+            ManagerOptionsRepository managerOptionsRepository
 	) {
 		return args -> {
 			var admin = RegisterRequest.builder()
@@ -52,14 +65,32 @@ public class SecurityApplication {
 					.build();
 			System.out.println("Admin token: " + service.register(admin).getAccessToken());
 
-			var manager = RegisterRequest.builder()
+			var demoManager = RegisterRequest.builder()
 					.firstName("Demo")
 					.lastName("Manager")
 					.email("demo@demo.com")
 					.password("demopassword")
 					.role(MANAGER)
 					.build();
-			System.out.println("Manager token: " + service.register(manager).getAccessToken());
+			System.out.println("Manager token: " + service.register(demoManager).getAccessToken());
+			
+			User demoUser = userRepository.findByEmail("demo@demo.com")
+			        .orElseThrow(() -> new RuntimeException("User not found"));
+			User adminUser = userRepository.findByEmail("admin@mail.com")
+			        .orElseThrow(() -> new RuntimeException("User not found"));
+			
+			CompanyName myCompany = new CompanyName("Demo company", demoUser);
+			
+			companyRepository.save(myCompany);
+			
+			ManagerOptions managerOptions = new ManagerOptions();
+			managerOptions.setManagerId(demoUser.getId());
+			managerOptions.setActiveDate(LocalDate.now().plusYears(1));
+			managerOptions.setUserId(adminUser.getId());
+			managerOptions.setAmmountPaid(0.0);
+			managerOptions.setComments("enable of the Demo Manager for a year");
+			
+			managerOptionsRepository.save(managerOptions);
 
 		};
 	}*/
