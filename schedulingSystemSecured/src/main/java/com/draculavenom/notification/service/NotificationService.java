@@ -56,6 +56,17 @@ public class NotificationService {
     public void notifyAppointmentStatusChanged(Appointment appointment, AppointmentStatus status){
         User user = userRepository.findById(appointment.getUserId())
             .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        if(user.getManagedBy() == null) {
+            return;
+        }
+        User manager = userRepository.findById(user.getManagedBy())
+            .orElseThrow(() -> new IllegalStateException("Manager not found"));
+
+        if(!settingsService.shouldNotifyAppointmentStatusChanges(manager)) {
+            return;
+        }
+
         try{
             appointmentNotificationService.sendAppointmentStatusChanged(user, appointment, status);
         }catch(Exception e){
@@ -64,6 +75,10 @@ public class NotificationService {
     }
 
     public void notifySubscriptionReminder(User manager, LocalDate expirationDate, long daysLeft){
+        if(!settingsService.shouldNotifyPaymentRunOut(manager)) {
+            return;
+        }
+
         try{
             managerNotificationService.sendSubscriptionReminder(manager, expirationDate, daysLeft);    
         }catch(Exception e){

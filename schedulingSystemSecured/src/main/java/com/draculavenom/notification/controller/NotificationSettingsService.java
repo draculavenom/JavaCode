@@ -23,15 +23,18 @@ public class NotificationSettingsService {
     public NotificationSettings updateSettings(
         User user, 
         boolean emailEnabled,
-        boolean appointmentCreated){
+        boolean appointmentCreated,
+        boolean paymentRunsOut, boolean appointmentStatusChanges){
             if(!user.getRole().equals(Role.MANAGER)){
-                throw new AccessDeniedException("Solo manager pueden modificar las notificaciones");
+                throw new AccessDeniedException("Only managers can modify notifications");
             }
 
         NotificationSettings settings = getOrCreate(user);
 
         settings.setEmailEnabled(emailEnabled);
         settings.setAppointmentCreated(appointmentCreated);
+        settings.setPaymentRunsOut(paymentRunsOut);
+        settings.setAppointmentStatusChanges(appointmentStatusChanges);
 
         return repository.save(settings);
     }
@@ -39,6 +42,18 @@ public class NotificationSettingsService {
     public boolean shouldNotifyAppointmentCreated(User manager){
         return repository.findByUserId(manager.getId())
             .map(s -> s.isEmailEnabled() && s.isAppointmentCreated())
+            .orElse(true);
+    }
+
+    public boolean shouldNotifyPaymentRunOut(User manager) {
+        return repository.findByUserId(manager.getId())
+            .map(s -> s.isEmailEnabled() && s.isPaymentRunsOut())
+            .orElse(true);
+    }
+
+    public boolean shouldNotifyAppointmentStatusChanges(User manager) {
+        return repository.findByUserId(manager.getId())
+            .map(a -> a.isEmailEnabled() && a.isAppointmentStatusChanges())
             .orElse(true);
     }
 
