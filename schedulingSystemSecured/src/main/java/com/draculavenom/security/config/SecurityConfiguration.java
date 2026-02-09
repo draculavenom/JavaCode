@@ -60,6 +60,7 @@ public class SecurityConfiguration {
         .requestMatchers(
                 "/api/v1/auth/**",
                 "/api/v1/Manager/select",
+                "/api/v1/payments/webhook",
                 "/v2/api-docs",
                 "/v3/api-docs",
                 "/v3/api-docs/**",
@@ -96,7 +97,7 @@ public class SecurityConfiguration {
 //        .requestMatchers(POST, "/api/v1/Appointments/**").hasAuthority(USER_CREATE.name())
 //        .requestMatchers(PUT, "/api/v1/Appointments/**").hasAuthority(USER_UPDATE.name())
 //        .requestMatchers(DELETE, "/api/v1/Appointments/**").hasAuthority(USER_DELETE.name())
-
+       // .requestMatchers(POST, "/api/v1/payments/**").hasAuthority(MANAGER.name())
 
         .anyRequest()
           .authenticated()

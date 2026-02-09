@@ -22,4 +22,11 @@ public class ManagerOptionsService {
 
       return !options.getActiveDate().isBefore(LocalDate.now());
     }
+
+    public static void activateOptional(String managerId, String optionId) {
+      ManagerOptions options = managerRepository.findById(Integer.parseInt(optionId)).orElseThrow(() -> new RuntimeException("Option not found"));
+      options.setActiveDate(LocalDate.now().plusMonths(1));
+      managerRepository.save(options);
+    }
+
 }
