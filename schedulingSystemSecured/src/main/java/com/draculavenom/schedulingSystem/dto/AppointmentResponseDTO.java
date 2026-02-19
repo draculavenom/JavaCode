@@ -26,4 +26,6 @@ public class AppointmentResponseDTO {
 
     private Integer managerId;
     private String companyName;
+    private String firstName;
+    private String lastName;
 }

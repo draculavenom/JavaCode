@@ -54,6 +54,9 @@ public class AppointmentService {
             dto.setStatus(appointment.getStatus());
             dto.setUserId(user.getId());
 
+            dto.setFirstName(user.getFirstName());
+            dto.setLastName(user.getLastName());
+
             String companyName = Optional.ofNullable(manager)
                 .map(User::getCompanyName)
                 .map(CompanyName::getNameCompany)
