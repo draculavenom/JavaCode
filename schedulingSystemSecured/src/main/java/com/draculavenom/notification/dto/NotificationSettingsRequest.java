@@ -11,5 +11,7 @@ public class NotificationSettingsRequest {
     private boolean appointmentCreated;
     private boolean paymentRunsOut;
     private boolean appointmentStatusChanges;
+    private boolean appointmentTimeManager;
+    private boolean appointmentTimeUser;
     
 }

@@ -86,4 +86,46 @@ public class NotificationService {
         } 
     }
 
+    public void notifyAppointmentTimeManager(Appointment appointment){
+        User user = userRepository.findById(appointment.getUserId())
+            .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        if(user.getManagedBy() == null) {
+            return;
+        }
+        User manager = userRepository.findById(user.getManagedBy())
+            .orElseThrow(() -> new IllegalStateException("Manager not found"));
+        
+        if(!settingsService.shouldNotifyAppointmentTimeManager(manager)) {
+            return;
+        }
+
+        try{
+            appointmentNotificationService.sendAppointmentTimeManager(manager, appointment, user);
+        }catch(Exception e){
+            System.err.println("Error sending appointment confirmed: " + e.getMessage());
+        }
+    }
+
+    public void notifyAppointmentTimeUser(Appointment appointment){
+        User user = userRepository.findById(appointment.getUserId())
+            .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        if(user.getManagedBy() == null) {
+            return;
+        }
+        User manager = userRepository.findById(user.getManagedBy())
+            .orElseThrow(() -> new IllegalStateException("Manager not found"));
+        
+        if(!settingsService.shouldNotifyAppointmentTimeUser(manager)) {
+            return;
+        }
+
+        try{
+            appointmentNotificationService.sendAppointmentTimeUser(user, appointment, manager);
+        }catch(Exception e){
+            System.err.println("Error sending appointment confirmed: " + e.getMessage());
+        }
+    }
+
 }

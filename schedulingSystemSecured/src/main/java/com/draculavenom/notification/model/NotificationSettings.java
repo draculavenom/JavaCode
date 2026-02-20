@@ -51,12 +51,20 @@ public class NotificationSettings {
     @Column(name = "appointment_status_changes", nullable = false)
     private boolean appointmentStatusChanges = true;
 
+    @Column(name = "appointment_time_manager", nullable = false)
+    private boolean appointmentTimeManager = true;
+
+    @Column(name = "appointment_time_user", nullable = false)
+    private boolean appointmentTimeUser = true;
+
     public NotificationSettings(User user) {
         this.user = user;
         this.emailEnabled = true;
         this.appointmentCreated = true;
         this.paymentRunsOut = true;
         this.appointmentStatusChanges = true;
+        this.appointmentTimeManager = true;
+        this.appointmentTimeUser = true;
     }
     
 }

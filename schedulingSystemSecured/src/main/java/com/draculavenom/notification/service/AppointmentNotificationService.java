@@ -70,4 +70,48 @@ public class AppointmentNotificationService {
             emailService.sendSimpleMessage(user.getEmail(), subject, body);
     }
 
+    public void sendAppointmentTimeManager(User manager, Appointment appointment,  User user){
+
+        String subject = "Appointment Reminder - Start in 5 minutes";
+
+        String body = """
+            Hello %s,
+
+            We are reminding you that you have an appointment scheduled fot today at %s.
+
+            Client: %s.
+
+            The appointment will begin in approximately 5 minutes.
+
+            Please log in to the system to manage it.
+            """.formatted(
+                manager.getName(), 
+                appointment.getTime(),
+                user.getName()
+            );
+
+            emailService.sendSimpleMessage(manager.getEmail(), subject, body); 
+    }
+
+    public void sendAppointmentTimeUser(User user, Appointment appointment, User manager){
+        
+        String subject = "Your Appointment Start in 5 minutes";
+
+        String body = """
+            Hello %s,
+
+            This is a reminder that you have an appointment scheduled today at %s with %s.
+
+            The appointment will begin in approximately 5 minutes.
+
+            We look forward to seeing you!
+            """.formatted(
+                user.getName(), 
+                appointment.getTime(),
+                manager.getCompanyName()
+            );
+
+            emailService.sendSimpleMessage(user.getEmail(), subject, body); 
+    }
+
 }

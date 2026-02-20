@@ -11,12 +11,16 @@ public class NotificationSettingsResponse {
     private boolean appointmentCreated;
     private boolean paymentRunsOut;
     private boolean appointmentStatusChanges;
+    private boolean appointmentTimeManager;
+    private boolean appointmentTimeUser;
 
     public NotificationSettingsResponse(NotificationSettings settings){
         this.emailEnabled = settings.isEmailEnabled();
         this.appointmentCreated = settings.isAppointmentCreated();
         this.paymentRunsOut = settings.isPaymentRunsOut();
         this.appointmentStatusChanges = settings.isAppointmentStatusChanges();
+        this.appointmentTimeManager = settings.isAppointmentTimeManager();
+        this.appointmentTimeUser = settings.isAppointmentTimeUser();
     }
 
 }

@@ -100,7 +100,7 @@ public class AppointmentManager {
 		try{
 			notificationService.notifyAppointmentStatusChanged(saved, status);
 		}catch(Exception e){
-			log.error("Error sending appointmenr status notification", e);
+			log.error("Error sending appointment status notification", e);
 		}
 		return saved;
 	}
