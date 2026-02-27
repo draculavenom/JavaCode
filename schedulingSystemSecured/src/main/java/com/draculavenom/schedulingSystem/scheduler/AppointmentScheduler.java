@@ -39,7 +39,7 @@ public class AppointmentScheduler {
 
         for (Appointment appoint : app) {
             if(appoint.getDate().isBefore(today) || (appoint.getDate().isEqual(today) && appoint.getTime().isBefore(now))) {
-                appointmentManager.cancelAppointment(appoint);
+                appointmentManager.CancelBySystem(appoint);
             }
         }
     }

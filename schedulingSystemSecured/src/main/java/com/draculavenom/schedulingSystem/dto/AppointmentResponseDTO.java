@@ -21,6 +21,7 @@ public class AppointmentResponseDTO {
     private LocalDate date;
     private LocalTime time;
     private AppointmentStatus status;
+    private String comment;
 
     private Integer userId;
 

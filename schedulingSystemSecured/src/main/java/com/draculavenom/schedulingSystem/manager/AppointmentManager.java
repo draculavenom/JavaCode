@@ -25,6 +25,41 @@ public class AppointmentManager {
 	@Autowired private AppointmentRepository repository;
 	@Autowired private UserRepository userRepository;
 	@Autowired private NotificationService notificationService;
+
+	private Appointment applyStatusChange(Appointment appointment, AppointmentStatus newStatus, String comment, boolean systemAction){
+		boolean requiresComment = false;
+		if(newStatus == AppointmentStatus.CANCELLED && !systemAction){
+			requiresComment = true;
+		}
+
+		if(requiresComment) {
+			if(comment == null || comment.trim().isEmpty()) {
+				throw new IllegalArgumentException("Comment is requires for this action.");
+			}
+			appointment.setComment(comment);
+		} else {
+			if(comment != null && !comment.trim().isEmpty()) {
+				appointment.setComment(comment);
+			}
+		}
+		appointment.setStatus(newStatus);
+
+		return repository.save(appointment);
+	}
+
+	private Appointment cancelInternal(Appointment appointment, String comment, boolean systemAction) {
+		if(!systemAction) {
+			if(comment == null || comment.trim().isEmpty()) {
+				throw new IllegalArgumentException("Comment is required wen cancelling");
+			}
+			appointment.setComment(comment);
+		} else {
+			appointment.setComment("System cancelled appointment due to expiration.");
+		}
+
+		appointment.setStatus(AppointmentStatus.CANCELLED);
+		return repository.save(appointment);
+	}
 	
 	public Appointment create(Appointment ap) throws Exception{
 		List<Appointment> appointments = getAppointmentsManagedByUserId(ap.getUserId());
@@ -52,24 +87,37 @@ public class AppointmentManager {
 				throw new Exception("You can't schedule appointments in the past. Please select a valid option");
 			else{
 				Appointment a = repository.findById(ap.getId()).orElseThrow(Exception::new);
+				boolean dateChanged = !a.getDate().equals(ap.getDate()) || !a.getTime().equals(ap.getTime());
 				a.setDate(ap.getDate());
 				a.setStatus(ap.getStatus());
 				a.setTime(ap.getTime());
+
+				if(dateChanged) {
+					if(ap.getComment() == null || ap.getComment().trim().isEmpty()) {
+						throw new IllegalArgumentException("Comment is required when rescheduling.");
+					}
+					a.setComment(ap.getComment());
+				}
 				return repository.save(a);
 			}
 		}else
 			throw new Exception("That slot is already been scheduled, please try again with a different slot");
 	}
 	
-	public Appointment getAppointmentAndCancelIt(Integer id) {
+	public Appointment getAppointmentAndCancelIt(Integer id, String comment) {
 		Appointment ap = repository.findById(id).orElseThrow();
-		return cancelAppointment(ap);
+		return cancelAppointment(ap, comment);
 	}
 	
-	public Appointment cancelAppointment(Appointment ap) {
-		ap.setStatus(AppointmentStatus.CANCELLED);
-		repository.save(ap);
-		return ap;
+	public Appointment cancelAppointment(Appointment ap, String comment) {
+		//ap.setStatus(AppointmentStatus.CANCELLED);
+		//repository.save(ap);
+		//return ap;
+		return cancelInternal(ap, comment, false);
+	}
+
+	public Appointment CancelBySystem(Appointment appointment) {
+		return cancelInternal(appointment, null, true);
 	}
 	
 	public List<Appointment> getAppointmentsManagedByUserId(int userId){
@@ -93,10 +141,9 @@ public class AppointmentManager {
 		return appointments;
 	}
 	
-	public Appointment updateStatus(int id, AppointmentStatus status) {
+	public Appointment updateStatus(int id, AppointmentStatus status, String comment) {
 		Appointment appointment = repository.findById(id).orElseThrow();
-		appointment.setStatus(status);
-		Appointment saved = repository.save(appointment);
+		Appointment saved = applyStatusChange(appointment, status, comment, false);
 		try{
 			notificationService.notifyAppointmentStatusChanged(saved, status);
 		}catch(Exception e){

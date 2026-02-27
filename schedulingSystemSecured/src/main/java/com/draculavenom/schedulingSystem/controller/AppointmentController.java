@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.draculavenom.schedulingSystem.dto.AppointmentResponseDTO;
@@ -72,13 +73,13 @@ public class AppointmentController {
 	}
 	
 	@DeleteMapping("{id}")
-	public ResponseEntity<Appointment> cancel(@PathVariable Integer id) {
-		return new ResponseEntity<Appointment>(manager.getAppointmentAndCancelIt(id), HttpStatusCode.valueOf(200));
+	public ResponseEntity<Appointment> cancel(@PathVariable Integer id, @RequestParam String comment) {
+		return new ResponseEntity<Appointment>(manager.getAppointmentAndCancelIt(id, comment), HttpStatusCode.valueOf(200));
 	}
 	
 	@PutMapping("/updateStatus")
 	public ResponseEntity<Appointment> updateStatus(@RequestBody Appointment ap) {
-		return new ResponseEntity<Appointment>(manager.updateStatus(ap.getId(), ap.getStatus()), HttpStatusCode.valueOf(200));
+		return new ResponseEntity<Appointment>(manager.updateStatus(ap.getId(), ap.getStatus(), ap.getComment()), HttpStatusCode.valueOf(200));
 	}
 	
 	@GetMapping("/email")

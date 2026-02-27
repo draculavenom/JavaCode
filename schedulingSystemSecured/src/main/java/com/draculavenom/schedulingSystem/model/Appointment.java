@@ -26,6 +26,7 @@ public class Appointment {
 	private LocalDate date;
 	private LocalTime time;
 	private AppointmentStatus status;
+	private String comment;
 	
 	public Appointment cancelAppointment() {
 		status = AppointmentStatus.CANCELLED;

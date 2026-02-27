@@ -94,7 +94,8 @@ public class AppointmentNotificationService {
     }
 
     public void sendAppointmentTimeUser(User user, Appointment appointment, User manager){
-        
+        String companyName = manager.getCompanyName() != null 
+            ? manager.getCompanyName().getNameCompany() : manager.getName(); 
         String subject = "Your Appointment Start in 5 minutes";
 
         String body = """
@@ -108,7 +109,7 @@ public class AppointmentNotificationService {
             """.formatted(
                 user.getName(), 
                 appointment.getTime(),
-                manager.getCompanyName()
+                companyName
             );
 
             emailService.sendSimpleMessage(user.getEmail(), subject, body); 
