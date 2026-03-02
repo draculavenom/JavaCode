@@ -32,7 +32,7 @@ public class UserManagerService {
         newUser.setEmail(user.getEmail());
         newUser.setPhoneNumber(user.getPhoneNumber());
         newUser.setDateOfBirth(user.getDateOfBirth());
-        newUser.setManagedBy(user.getManagedBy());
+        //newUser.setManagedBy(user.getManagedBy());
         newUser.setRole(Role.valueOf(user.getRole()));
 
         newUser.setPassword(passwordEncoder.encode(temporaryPassword));

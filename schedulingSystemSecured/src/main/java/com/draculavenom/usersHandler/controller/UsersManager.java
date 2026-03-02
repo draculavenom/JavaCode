@@ -9,6 +9,8 @@ import org.springframework.stereotype.Controller;
 import com.draculavenom.schedulingSystem.utilities.EmailService;
 import com.draculavenom.security.user.Role;
 import com.draculavenom.security.user.User;
+import com.draculavenom.security.user.UserManagement;
+import com.draculavenom.security.user.UserManagementRepository;
 import com.draculavenom.security.user.UserRepository;
 import com.draculavenom.usersHandler.dto.UserInputDTO;
 
@@ -18,6 +20,7 @@ public class UsersManager {
 	@Autowired private UserRepository repository;
 	@Autowired private PasswordEncoder passwordEncoder;
 	@Autowired private EmailService emailService;
+	@Autowired private UserManagementRepository userManagementRepository;
 	
 	public User create(UserInputDTO user) {
 		User newUser = new User();
@@ -27,12 +30,23 @@ public class UsersManager {
 		newUser.setPassword(passwordEncoder.encode(user.getPassword()));
 		newUser.setPhoneNumber(user.getPhoneNumber());
 		newUser.setDateOfBirth(user.getDateOfBirth());
-		newUser.setManagedBy(user.getManagedBy());
+		//newUser.setManagedBy(user.getManagedBy());
 		newUser.setRole(Role.valueOf(user.getRole()));
-		return repository.save(newUser);
+		User savedUser = repository.save(newUser);
+
+		if(user.getManagerIds() != null && !user.getManagerIds().isEmpty()){
+			for(Integer managerId : user.getManagerIds()){
+				User manager = repository.findById(managerId).orElseThrow(() -> new RuntimeException("Manager not found"));
+				UserManagement relation = new UserManagement();
+				relation.setCustomer(savedUser);
+				relation.setManager(manager);
+				userManagementRepository.save(relation);
+			}
+		}
+		return savedUser;
 	}
 	
-	public User update(UserInputDTO user) {
+	/*public User update(UserInputDTO user) {
 		User newUser = repository.getById(user.getId());
 		newUser.setFirstName(user.getFirstName());
 		newUser.setLastName(user.getLastName());
@@ -40,7 +54,36 @@ public class UsersManager {
 		newUser.setPhoneNumber(user.getPhoneNumber());
 		newUser.setDateOfBirth(user.getDateOfBirth());
 		return repository.save(newUser);
-	}
+	}*/
+
+	public User update(UserInputDTO userDto) {
+
+    User user = repository.findById(userDto.getId())
+            .orElseThrow(() -> new RuntimeException("User not found"));
+
+    user.setFirstName(userDto.getFirstName());
+    user.setLastName(userDto.getLastName());
+    user.setEmail(userDto.getEmail());
+    user.setPhoneNumber(userDto.getPhoneNumber());
+    user.setDateOfBirth(userDto.getDateOfBirth());
+
+    repository.save(user);
+    userManagementRepository.deleteByCustomer(user);
+
+    if (userDto.getManagerIds() != null) {
+        for (Integer managerId : userDto.getManagerIds()) {
+
+            User manager = repository.findById(managerId)
+                    .orElseThrow(() -> new RuntimeException("Manager not found"));
+
+            UserManagement relation = new UserManagement();
+            relation.setCustomer(user);
+            relation.setManager(manager);
+            userManagementRepository.save(relation);
+        }
+    }
+    return user;
+}
 	
 	public boolean resetPassword(int id) {
 		User user = repository.getById(id);

@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.draculavenom.security.config.JwtService;
 import com.draculavenom.security.user.User;
+import com.draculavenom.security.user.UserManagementRepository;
 import com.draculavenom.security.user.UserRepository;
 import com.draculavenom.usersHandler.dto.UserDTO;
 import com.draculavenom.usersHandler.dto.UserInputDTO;
@@ -31,27 +32,39 @@ public class UsersController {
 	@Autowired private UsersManager manager;
 	@Autowired private JwtService jwtService;
 	@Autowired private UserManagerService managerService;
+	@Autowired private UserManagementRepository userManagementRepository;
 	
 	@GetMapping
 	@PreAuthorize("hasAuthority('admin:read')")
 	public List<UserDTO> getAll(){
-		List<UserDTO> users = new ArrayList<UserDTO>();
+		/*List<UserDTO> users = new ArrayList<UserDTO>();
 		repository.findAll().stream().forEach(u -> {
 			UserDTO user = new UserDTO(u.getId(), u.getEmail(), u.getFirstName() + " " + u.getLastName(), u.getPhoneNumber(), u.getDateOfBirth(), u.getManagedBy(), u.getRole().name(), u.getPasswordChange());
 			users.add(user);
 		});
-		return users;
+		return users;*/
+		 return repository.findAll().stream().map(u -> {
+			List<Integer> managerIds = userManagementRepository
+				.findByCustomer(u).stream().map(rel -> rel.getManager().getId()).toList();
+
+			return new UserDTO(u.getId(), u.getEmail(), u.getFirstName() + " " + u.getLastName(), u.getPhoneNumber(), u.getDateOfBirth(), managerIds, u.getRole().name(), u.getPasswordChange());
+		}).toList();
 	}
 	
 	@GetMapping("/{id}")
 	@PreAuthorize("hasAuthority('user:read')")
 	public UserInputDTO get(@PathVariable int id) {
 		User fullUser = repository.getById(id);
-		if(fullUser != null) {
+		/*if(fullUser != null) {
 			UserInputDTO user = new UserInputDTO(fullUser.getId(), fullUser.getEmail(), fullUser.getFirstName(), fullUser.getLastName(), "", fullUser.getPhoneNumber(), fullUser.getDateOfBirth(), (int) (fullUser.getManagedBy() != null ? fullUser.getManagedBy() : 0), fullUser.getRole().name());
 			return user;
 		}
-		return null;
+		return null;*/
+		List<Integer> managerIds = userManagementRepository
+			.findByCustomer(fullUser).stream().map(rel -> rel.getManager().getId()).toList();
+
+		return new UserInputDTO(fullUser.getId(), fullUser.getEmail(), fullUser.getFirstName(), fullUser.getLastName(), "", fullUser.getPhoneNumber(), fullUser.getDateOfBirth(), managerIds, fullUser.getRole().name());
+
 	}
 	
 	@GetMapping("/byEmail/{email}")
@@ -60,7 +73,10 @@ public class UsersController {
 		Optional<User> optionalUser = repository.findByEmail(email);
 		if(!optionalUser.isEmpty()) {
 			User fullUser = optionalUser.get();
-			UserDTO user = new UserDTO(fullUser.getId(), fullUser.getEmail(), fullUser.getFirstName() + " " + fullUser.getLastName(), fullUser.getPhoneNumber(), fullUser.getDateOfBirth(), fullUser.getManagedBy(), fullUser.getRole().name(), fullUser.getPasswordChange());
+			List<Integer> managerIds = userManagementRepository
+			.findByCustomer(fullUser).stream().map(rel -> rel.getManager().getId()).toList();
+
+			UserDTO user = new UserDTO(fullUser.getId(), fullUser.getEmail(), fullUser.getFirstName() + " " + fullUser.getLastName(), fullUser.getPhoneNumber(), fullUser.getDateOfBirth(), managerIds, fullUser.getRole().name(), fullUser.getPasswordChange());
 			return user;
 		}
 		return null;
@@ -70,13 +86,17 @@ public class UsersController {
 	@PreAuthorize("hasAuthority('admin:create')")
 	public ResponseEntity<UserInputDTO> create(@RequestBody UserInputDTO user) {
 		User fullUser = managerService.create(user);
+		List<Integer> managerIds = userManagementRepository
+			.findByCustomer(fullUser).stream().map(rel -> rel.getManager().getId()).toList();
+
 		user.setId(fullUser.getId());
 		user.setFirstName(fullUser.getFirstName());
 		user.setLastName(fullUser.getLastName());
 		user.setEmail(fullUser.getEmail());
 		user.setPhoneNumber(fullUser.getPhoneNumber());
 		user.setDateOfBirth(fullUser.getDateOfBirth());
-		user.setManagedBy(fullUser.getManagedBy());
+		//user.setManagedBy(fullUser.getManagedBy());
+		user.setManagerIds(managerIds);
 		user.setRole(fullUser.getRole().name());
 		
 		return new ResponseEntity<UserInputDTO>(user, HttpStatusCode.valueOf(200));
@@ -87,13 +107,17 @@ public class UsersController {
 	@PreAuthorize("hasAuthority('admin:update')")
 	public ResponseEntity<UserInputDTO> update(@RequestBody UserInputDTO user) {
 		User fullUser = manager.update(user);
+		List<Integer> managerIds = userManagementRepository
+			.findByCustomer(fullUser).stream().map(rel -> rel.getManager().getId()).toList();
+
 		user.setId(fullUser.getId());
 		user.setFirstName(fullUser.getFirstName());
 		user.setLastName(fullUser.getLastName());
 		user.setEmail(fullUser.getEmail());
 		user.setPhoneNumber(fullUser.getPhoneNumber());
 		user.setDateOfBirth(fullUser.getDateOfBirth());
-		user.setManagedBy(fullUser.getManagedBy());
+		//user.setManagedBy(fullUser.getManagedBy());
+		user.setManagerIds(managerIds);
 		user.setRole(fullUser.getRole().name());
 		return new ResponseEntity<UserInputDTO>(user, HttpStatusCode.valueOf(200));
 	}
@@ -105,13 +129,17 @@ public class UsersController {
 		if(Integer.parseInt(id) != user.getId())
 			return new ResponseEntity("You cannot edit a different user from yourself", HttpStatusCode.valueOf(400));
 		User fullUser = manager.update(user);
+		List<Integer> managerIds = userManagementRepository
+			.findByCustomer(fullUser).stream().map(rel -> rel.getManager().getId()).toList();
+
 		user.setId(fullUser.getId());
 		user.setFirstName(fullUser.getFirstName());
 		user.setLastName(fullUser.getLastName());
 		user.setEmail(fullUser.getEmail());
 		user.setPhoneNumber(fullUser.getPhoneNumber());
 		user.setDateOfBirth(fullUser.getDateOfBirth());
-		user.setManagedBy(fullUser.getManagedBy());
+		//user.setManagedBy(fullUser.getManagedBy());
+		user.setManagerIds(managerIds);
 		user.setRole(fullUser.getRole().name());
 		return new ResponseEntity<UserInputDTO>(user, HttpStatusCode.valueOf(200));
 	}

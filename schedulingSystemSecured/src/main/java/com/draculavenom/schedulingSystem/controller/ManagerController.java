@@ -25,6 +25,8 @@ import com.draculavenom.schedulingSystem.model.ManagerOptions;
 import com.draculavenom.schedulingSystem.model.ManagerOptionsRepository;
 import com.draculavenom.security.user.Role;
 import com.draculavenom.security.user.User;
+import com.draculavenom.security.user.UserManagement;
+import com.draculavenom.security.user.UserManagementRepository;
 import com.draculavenom.security.user.UserRepository;
 import com.draculavenom.usersHandler.dto.UserDTO;
 
@@ -35,6 +37,7 @@ public class ManagerController {
 	@Autowired private ManagerOptionsRepository managerRepository;
 	@Autowired private UserRepository repository;
 	@Autowired private CompanyNameRepository companyNameRepository;
+	@Autowired private UserManagementRepository userManagementRepository;
 	
 	@GetMapping("{id}")
 	@PreAuthorize("hasAuthority('admin:read')")
@@ -109,15 +112,22 @@ public class ManagerController {
 	@GetMapping("/{managerId}/persons")
 	@PreAuthorize("hasAuthority('manager:read')")
 	public List<UserDTO> getPersonsByManager(@PathVariable Integer managerId){
-		List<User> users = repository.findAllByManagedBy(managerId).orElse(new ArrayList<>());
-		return users.stream()
+		//List<User> users = repository.findAllByManagedBy(managerId).orElse(new ArrayList<>());
+		User manager = repository.findById(managerId)
+            .orElseThrow(() -> new RuntimeException("Manager not found"));
+
+    	List<UserManagement> relations = userManagementRepository.findByManager(manager);
+
+		return relations.stream()
+			.map(rel -> rel.getCustomer())
             .map(u -> UserDTO.builder()
 				.id(u.getId())
 				.name(u.getFirstName() + " " + u.getLastName()) 
 				.email(u.getEmail())
 				.phoneNumber(u.getPhoneNumber())
 				.dateOfBirth(u.getDateOfBirth())
-				.managedBy(u.getManagedBy())
+				//.managedBy(u.getManagedBy())
+				.managerIds(userManagementRepository.findByCustomer(u).stream().map(r -> r.getManager().getId()).toList())
 				.role(u.getRole().name()) 
 				.passwordChange(u.getPasswordChange())
 				.build())

@@ -14,6 +14,8 @@ import com.draculavenom.schedulingSystem.model.Appointment;
 import com.draculavenom.schedulingSystem.model.AppointmentRepository;
 import com.draculavenom.schedulingSystem.model.AppointmentStatus;
 import com.draculavenom.security.user.User;
+import com.draculavenom.security.user.UserManagement;
+import com.draculavenom.security.user.UserManagementRepository;
 import com.draculavenom.security.user.UserRepository;
 
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +27,7 @@ public class AppointmentManager {
 	@Autowired private AppointmentRepository repository;
 	@Autowired private UserRepository userRepository;
 	@Autowired private NotificationService notificationService;
+	@Autowired private UserManagementRepository userManagementRepository;
 
 	private Appointment applyStatusChange(Appointment appointment, AppointmentStatus newStatus, String comment, boolean systemAction){
 		boolean requiresComment = false;
@@ -122,23 +125,38 @@ public class AppointmentManager {
 	
 	public List<Appointment> getAppointmentsManagedByUserId(int userId){
 		User user = userRepository.findById(userId).orElseThrow();
+		List<UserManagement> relations = userManagementRepository.findByManager(manager);
+
+    	List<Integer> customerIds = relations.stream()
+            .map(r -> r.getCustomer().getId())
+            .collect(Collectors.toList());
 		List<AppointmentStatus> appointmentStatuses = new ArrayList<AppointmentStatus>();
 		appointmentStatuses.add(AppointmentStatus.SCHEDULED);
 		appointmentStatuses.add(AppointmentStatus.COMPLETED);
 		appointmentStatuses.add(AppointmentStatus.CONFIRMED);
 		List<Appointment> appointments = repository.findAllByStatusIn(appointmentStatuses);
-		if(user.getManagedBy() != null) {
+		/*if(user.getManagedBy() != null) {
 			List<User> users = userRepository.findAllByManagedBy(user.getManagedBy()).orElseThrow();
 			appointments = appointments.stream().filter(a -> users.stream().map(u -> u.getId()).collect(Collectors.toList()).contains(a.getUserId())).collect(Collectors.toList());			
 		}
-		return appointments;
+		return appointments;*/
+		return appointments.stream()
+            .filter(a -> customerIds.contains(a.getUserId()))
+            .collect(Collectors.toList());
 	}
 	
 	public List<Appointment> getAppointmentsManagedByUserIdAllStatus(int userId){
+		User manager = userRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("Manager not found"));
+		List<UserManagement> relations = userManagementRepository.findByManager(manager);
+		List<Integer> customerIds = relations.stream().map(rel -> rel.getCustomer().getId()).collect(Collectors.toList());
 		List<Appointment> appointments = repository.findAll();
-		List<User> users = userRepository.findAllByManagedBy(userId).orElseThrow();
+		/*List<User> users = userRepository.findAllByManagedBy(userId).orElseThrow();
 		appointments = appointments.stream().filter(a -> users.stream().map(u -> u.getId()).collect(Collectors.toList()).contains(a.getUserId())).collect(Collectors.toList());			
-		return appointments;
+		return appointments;*/
+		return appointments.stream()
+            .filter(a -> customerIds.contains(a.getUserId()))
+            .collect(Collectors.toList());
 	}
 	
 	public Appointment updateStatus(int id, AppointmentStatus status, String comment) {

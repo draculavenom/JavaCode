@@ -1,6 +1,7 @@
 package com.draculavenom.notification.service;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -9,6 +10,8 @@ import com.draculavenom.notification.controller.NotificationSettingsService;
 import com.draculavenom.schedulingSystem.model.Appointment;
 import com.draculavenom.schedulingSystem.model.AppointmentStatus;
 import com.draculavenom.security.user.User;
+import com.draculavenom.security.user.UserManagement;
+import com.draculavenom.security.user.UserManagementRepository;
 import com.draculavenom.security.user.UserRepository;
 
 @Service
@@ -19,6 +22,7 @@ public class NotificationService {
     @Autowired private UserRepository userRepository;
     @Autowired private IncorporationCredentialService incorporationCredentialService;
     @Autowired private ManagerNotificationService managerNotificationService;
+    @Autowired private UserManagementRepository userManagementRepository;
 
     public NotificationService(NotificationSettingsService settingsService, AppointmentNotificationService appointmentNotificationService, UserRepository userRepository, IncorporationCredentialService incorporationCredentialService){
         this.settingsService = settingsService;
@@ -31,13 +35,9 @@ public class NotificationService {
         User user = userRepository.findById(appointment.getUserId())
             .orElseThrow(() -> new RuntimeException("User not found"));
 
-        if(user.getManagedBy() == null){
-            return;
-        }
-
-        User manager = userRepository.findById(user.getManagedBy())
-        .orElseThrow(() -> new IllegalStateException("Manager not found"));
-
+        List<UserManagement> relations = userManagementRepository.findByCustomer(user);
+        if(relations.isEmpty()) return;
+        User manager = relations.get(0).getManager();
         if(!settingsService.shouldNotifyAppointmentCreated(manager)){
             return;
         }
@@ -57,12 +57,15 @@ public class NotificationService {
         User user = userRepository.findById(appointment.getUserId())
             .orElseThrow(() -> new RuntimeException("User not found"));
         
-        if(user.getManagedBy() == null) {
+        /*if(user.getManagedBy() == null) {
             return;
         }
         User manager = userRepository.findById(user.getManagedBy())
             .orElseThrow(() -> new IllegalStateException("Manager not found"));
-
+        */
+        List<UserManagement> relations = userManagementRepository.findByCustomer(user);
+        if(relations.isEmpty()) return;
+        User manager = relations.get(0).getManager();
         if(!settingsService.shouldNotifyAppointmentStatusChanges(manager)) {
             return;
         }
@@ -90,12 +93,15 @@ public class NotificationService {
         User user = userRepository.findById(appointment.getUserId())
             .orElseThrow(() -> new RuntimeException("User not found"));
         
-        if(user.getManagedBy() == null) {
+        /*if(user.getManagedBy() == null) {
             return;
         }
         User manager = userRepository.findById(user.getManagedBy())
             .orElseThrow(() -> new IllegalStateException("Manager not found"));
-        
+        */
+        List<UserManagement> relations = userManagementRepository.findByCustomer(user);
+        if(relations.isEmpty()) return;
+        User manager = relations.get(0).getManager();
         if(!settingsService.shouldNotifyAppointmentTimeManager(manager)) {
             return;
         }
@@ -111,12 +117,15 @@ public class NotificationService {
         User user = userRepository.findById(appointment.getUserId())
             .orElseThrow(() -> new RuntimeException("User not found"));
         
-        if(user.getManagedBy() == null) {
+        /*if(user.getManagedBy() == null) {
             return;
         }
         User manager = userRepository.findById(user.getManagedBy())
             .orElseThrow(() -> new IllegalStateException("Manager not found"));
-        
+        */
+        List<UserManagement> relations = userManagementRepository.findByCustomer(user);
+        if(relations.isEmpty()) return;
+        User manager = relations.get(0).getManager();
         if(!settingsService.shouldNotifyAppointmentTimeUser(manager)) {
             return;
         }

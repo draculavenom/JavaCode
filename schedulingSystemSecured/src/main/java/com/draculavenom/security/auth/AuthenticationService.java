@@ -6,6 +6,7 @@ import com.draculavenom.security.token.TokenRepository;
 import com.draculavenom.security.token.TokenType;
 import com.draculavenom.security.user.Role;
 import com.draculavenom.security.user.User;
+import com.draculavenom.security.user.UserManagement;
 import com.draculavenom.security.user.UserRepository;
 import com.draculavenom.usersHandler.dto.UserInputDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,6 +27,7 @@ import java.io.IOException;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.draculavenom.schedulingSystem.controller.ManagerOptionsService;
+import com.draculavenom.security.user.UserManagementRepository;
 
 @Service
 @RequiredArgsConstructor
@@ -36,7 +38,8 @@ public class AuthenticationService {
   private final JwtService jwtService;
   private final AuthenticationManager authenticationManager;
   private final ManagerOptionsService optionsService;
-
+  private final UserManagementRepository userManagementRepository;
+  
   public AuthenticationResponse register(RegisterRequest request) {
     var user = User.builder()
     	.id(request.getId())
@@ -64,10 +67,22 @@ public class AuthenticationService {
 				.password(passwordEncoder.encode(request.getPassword()))
 				.phoneNumber(request.getPhoneNumber())
 				.dateOfBirth(request.getDateOfBirth())
-				.managedBy(request.getManagedBy())
+				//.managedBy(request.getManagedBy())
 				.role(Role.USER)
 				.build();
 		var savedUser = repository.save(user);
+    if(request.getManagerIds() != null){
+        for(Integer managerId : request.getManagerIds()){
+            User manager = repository.findById(managerId)
+                    .orElseThrow(() -> new RuntimeException("Manager not found"));
+
+            UserManagement relation = new UserManagement();
+            relation.setCustomer(savedUser);
+            relation.setManager(manager);
+
+            userManagementRepository.save(relation);
+        }
+    }
 		var jwtToken = jwtService.generateToken(user);
 		var refreshToken = jwtService.generateRefreshToken(user);
 		saveUserToken(savedUser, jwtToken);

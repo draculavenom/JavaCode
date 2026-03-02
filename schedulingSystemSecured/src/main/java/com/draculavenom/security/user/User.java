@@ -51,7 +51,6 @@ public class User implements UserDetails {
   private String phoneNumber;
   @Column(nullable = true)
   private LocalDate dateOfBirth;
-  private Integer managedBy;
   private Boolean passwordChange;
 
   @Enumerated(EnumType.STRING)
@@ -63,6 +62,12 @@ public class User implements UserDetails {
 
   @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
   private CompanyName companyName;
+
+  @OneToMany(mappedBy = "customer")
+  private List<UserManagement> managers;
+
+  @OneToMany(mappedBy = "manager")
+  private List<UserManagement> customers;
 
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {

@@ -1,6 +1,7 @@
 package com.draculavenom.usersHandler.dto;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,6 +20,7 @@ public class UserInputDTO {
 	private String password;
 	private String phoneNumber;
 	private LocalDate dateOfBirth;
-	private int managedBy;
+	//private int managedBy;
+	private List<Integer> managerIds;
 	private String role;
 }
