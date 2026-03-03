@@ -11,4 +11,6 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
 	public List<Appointment> findAllByStatusIn(List<AppointmentStatus> appointmentStatuses);
 
 	public List<Appointment> findAllByStatusInAndDate(List<AppointmentStatus> statuses, LocalDate date);
+	
+	public List<Appointment> findAllByUserIdInAndDateAndStatusNot(List<Integer> userIds, LocalDate date, AppointmentStatus status);
 }
