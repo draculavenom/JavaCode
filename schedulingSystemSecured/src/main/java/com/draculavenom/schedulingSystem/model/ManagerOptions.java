@@ -23,6 +23,7 @@ public class ManagerOptions {
 	@Id @GeneratedValue private int id;
 	private int userId;
 	private int managerId;
+	private Integer sellerId;
 	private double ammountPaid;
 	private LocalDate activeDate;
 	private String comments;

@@ -60,7 +60,7 @@ public class ManagerController {
 	@PostMapping
 	@PreAuthorize("hasAuthority('admin:create')")
 	public ResponseEntity<ManagerDTO> create(@RequestBody ManagerDTO manager){
-		ManagerOptions managerOptions = new ManagerOptions(0, manager.getAdminId(), manager.getManagerId(), manager.getAmmountPaid(), manager.getActiveDate(), manager.getComments());
+		ManagerOptions managerOptions = new ManagerOptions(0, manager.getAdminId(), manager.getManagerId(), manager.getSellerId(), manager.getAmmountPaid(), manager.getActiveDate(), manager.getComments());
 		managerOptions = managerRepository.save(managerOptions);
 		manager.setId(managerOptions.getId());
 		if(manager.getCompanyName() != null && !manager.getCompanyName().isBlank()){
@@ -129,14 +129,25 @@ public class ManagerController {
 	public List<ManagerDTO> getManagerOptions(@PathVariable Integer managerId) {
 		List<ManagerOptions> managerOptions = managerRepository.findAllByManagerId(managerId);
 		return managerOptions.stream()
-			.map(o -> ManagerDTO.builder()
+			.map(o -> {
+				String sellerName = null;
+
+				if(o.getSellerId() != null){
+					User seller = repository.getById(o.getSellerId());
+					sellerName = seller.getName();
+				}
+				
+				return ManagerDTO.builder()
 				.id(o.getId())
 				.managerId(o.getManagerId())
 				.adminId(o.getUserId())
+				.sellerId(o.getSellerId())
+				.sellerName(sellerName)
 				.ammountPaid(o.getAmmountPaid())
 				.activeDate(o.getActiveDate())
 				.comments(o.getComments())
-				.build())
+				.build();
+			})
 			.collect(Collectors.toList());
 	}
 

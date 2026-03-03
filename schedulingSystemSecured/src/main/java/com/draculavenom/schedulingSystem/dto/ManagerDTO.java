@@ -21,6 +21,8 @@ public class ManagerDTO {
 	private String companyName;
 	private Integer managerId;
 	private Integer adminId;
+	private Integer sellerId;
+	private String sellerName;
 	private double ammountPaid;
 	private LocalDate activeDate;
 	private String comments;
