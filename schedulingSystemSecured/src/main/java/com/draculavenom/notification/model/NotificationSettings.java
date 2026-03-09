@@ -41,6 +41,9 @@ public class NotificationSettings {
 
     @Column(name = "email_enabled", nullable=false)
     private boolean emailEnabled = true;
+
+    @Column(name = "whatsapp_enabled", nullable = false)
+    private boolean whatsappEnabled = true;
     
     @Column(name = "appointment_created", nullable = false)
     private boolean appointmentCreated = true;
@@ -60,6 +63,7 @@ public class NotificationSettings {
     public NotificationSettings(User user) {
         this.user = user;
         this.emailEnabled = true;
+        this.whatsappEnabled = true;
         this.appointmentCreated = true;
         this.paymentRunsOut = true;
         this.appointmentStatusChanges = true;

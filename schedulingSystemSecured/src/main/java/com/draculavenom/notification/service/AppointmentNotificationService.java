@@ -1,7 +1,10 @@
 package com.draculavenom.notification.service;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.draculavenom.notification.controller.NotificationSettingsService;
+import com.draculavenom.notification.utilities.WhatsappService;
 import com.draculavenom.schedulingSystem.model.Appointment;
 import com.draculavenom.schedulingSystem.model.AppointmentStatus;
 import com.draculavenom.schedulingSystem.utilities.EmailService;
@@ -11,9 +14,13 @@ import com.draculavenom.security.user.User;
 public class AppointmentNotificationService {
 
     private final EmailService emailService;
+    private final WhatsappService whatsappService;
+    private final NotificationSettingsService settingsService;
 
-    public AppointmentNotificationService(EmailService emailService) {
+    public AppointmentNotificationService(EmailService emailService, WhatsappService whatsappService, NotificationSettingsService settingsService) {
         this.emailService = emailService;
+        this.whatsappService = whatsappService;
+        this.settingsService = settingsService;
     }
 
     public void sendAppointmentCreated(User manager, Appointment appointment){
@@ -35,10 +42,16 @@ public class AppointmentNotificationService {
                 appointment.getTime()
             );
 
-            emailService.sendSimpleMessage(manager.getEmail(), subject, body);
+            if(settingsService.shouldNotifyAppointmentCreated(manager)){
+                emailService.sendSimpleMessage(manager.getEmail(), subject, body);
+            }
+
+            if(settingsService.shouldNotifyAppointmentCreatedByWhatsapp(manager) && manager.getPhoneNumber() != null){
+                whatsappService.sendMessage(manager.getPhoneNumber(), body);
+            }
     }
 
-    public void sendAppointmentStatusChanged(User user, Appointment appointment, AppointmentStatus status){
+    public void sendAppointmentStatusChanged(User user, Appointment appointment, AppointmentStatus status, User manager){
 
         String subject = "Appointment Update";
 
@@ -67,7 +80,13 @@ public class AppointmentNotificationService {
                 statusMessage
             );
 
+        if(settingsService.shouldNotifyAppointmentStatusChanges(manager)){
             emailService.sendSimpleMessage(user.getEmail(), subject, body);
+        }
+
+        if(settingsService.shouldNotifyAppointmentStatusChangesByWhatsapp(manager) && user.getPhoneNumber() != null){
+            whatsappService.sendMessage(user.getPhoneNumber(), body);
+        }
     }
 
     public void sendAppointmentTimeManager(User manager, Appointment appointment,  User user){
@@ -90,7 +109,13 @@ public class AppointmentNotificationService {
                 user.getName()
             );
 
+        if(settingsService.shouldNotifyAppointmentTimeManager(manager)){
             emailService.sendSimpleMessage(manager.getEmail(), subject, body); 
+        }
+
+        if(settingsService.shouldNotifyAppointmentTimeManagerByWhatsapp(manager) && manager.getPhoneNumber() != null){
+            whatsappService.sendMessage(manager.getPhoneNumber(), body);
+        }
     }
 
     public void sendAppointmentTimeUser(User user, Appointment appointment, User manager){
@@ -112,7 +137,13 @@ public class AppointmentNotificationService {
                 companyName
             );
 
+        if(settingsService.shouldNotifyAppointmentTimeUser(manager)){
             emailService.sendSimpleMessage(user.getEmail(), subject, body); 
+        }
+
+        if(settingsService.shouldNotifyAppointmentTimeUserByWhatsapp(manager) && user.getPhoneNumber() != null){
+            whatsappService.sendMessage(user.getPhoneNumber(), body);
+        }
     }
 
 }

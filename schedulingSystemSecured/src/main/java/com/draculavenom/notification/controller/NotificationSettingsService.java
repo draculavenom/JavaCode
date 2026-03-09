@@ -23,6 +23,7 @@ public class NotificationSettingsService {
     public NotificationSettings updateSettings(
         User user, 
         boolean emailEnabled,
+        boolean whatsappEnabled,
         boolean appointmentCreated,
         boolean paymentRunsOut, boolean appointmentStatusChanges,
         boolean appointmentTimeManager, boolean appointmentTimeUser){
@@ -33,6 +34,7 @@ public class NotificationSettingsService {
         NotificationSettings settings = getOrCreate(user);
 
         settings.setEmailEnabled(emailEnabled);
+        settings.setWhatsappEnabled(whatsappEnabled);
         settings.setAppointmentCreated(appointmentCreated);
         settings.setPaymentRunsOut(paymentRunsOut);
         settings.setAppointmentStatusChanges(appointmentStatusChanges);
@@ -47,10 +49,20 @@ public class NotificationSettingsService {
             .map(s -> s.isEmailEnabled() && s.isAppointmentCreated())
             .orElse(true);
     }
+    public boolean shouldNotifyAppointmentCreatedByWhatsapp(User manager){
+        return repository.findByUserId(manager.getId())
+            .map(s -> s.isWhatsappEnabled() && s.isAppointmentCreated())
+            .orElse(true);
+    }
 
     public boolean shouldNotifyPaymentRunOut(User manager) {
         return repository.findByUserId(manager.getId())
             .map(s -> s.isEmailEnabled() && s.isPaymentRunsOut())
+            .orElse(true);
+    }
+    public boolean shouldNotifyPaymentRunOutByWhatsapp(User manager) {
+        return repository.findByUserId(manager.getId())
+            .map(s -> s.isWhatsappEnabled() && s.isPaymentRunsOut())
             .orElse(true);
     }
 
@@ -59,16 +71,31 @@ public class NotificationSettingsService {
             .map(a -> a.isEmailEnabled() && a.isAppointmentStatusChanges())
             .orElse(true);
     }
+    public boolean shouldNotifyAppointmentStatusChangesByWhatsapp(User manager) {
+        return repository.findByUserId(manager.getId())
+            .map(a -> a.isWhatsappEnabled() && a.isAppointmentStatusChanges())
+            .orElse(true);
+    }
 
     public boolean shouldNotifyAppointmentTimeManager(User manager) {
         return repository.findByUserId(manager.getId())
             .map(a -> a.isEmailEnabled() && a.isAppointmentTimeManager())
             .orElse(true);
     }
+    public boolean shouldNotifyAppointmentTimeManagerByWhatsapp(User manager) {
+        return repository.findByUserId(manager.getId())
+            .map(a -> a.isWhatsappEnabled() && a.isAppointmentTimeManager())
+            .orElse(true);
+    }
 
     public boolean shouldNotifyAppointmentTimeUser(User manager) {
         return repository.findByUserId(manager.getId())
             .map(a -> a.isEmailEnabled() && a.isAppointmentTimeUser())
+            .orElse(true);
+    }
+    public boolean shouldNotifyAppointmentTimeUserByWhatsapp(User manager) {
+        return repository.findByUserId(manager.getId())
+            .map(a -> a.isWhatsappEnabled() && a.isAppointmentTimeUser())
             .orElse(true);
     }
 

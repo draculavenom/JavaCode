@@ -38,7 +38,7 @@ public class NotificationSettingsController {
     public ResponseEntity<NotificationSettingsResponse> updateSelf(@RequestBody NotificationSettingsRequest request, @RequestHeader("Authorization") String authorizationHeader){
         User manager = getUserFromToken(authorizationHeader);
         NotificationSettings updated = service.updateSettings(
-            manager, request.isEmailEnabled(), request.isAppointmentCreated(), request.isPaymentRunsOut(), request.isAppointmentStatusChanges(), 
+            manager, request.isEmailEnabled(), request.isWhatsappEnabled(), request.isAppointmentCreated(), request.isPaymentRunsOut(), request.isAppointmentStatusChanges(), 
             request.isAppointmentTimeManager(), request.isAppointmentTimeUser()
         );
 

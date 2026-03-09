@@ -8,6 +8,7 @@ import lombok.Setter;
 public class NotificationSettingsRequest {
     
     private boolean emailEnabled;
+    private boolean whatsappEnabled;
     private boolean appointmentCreated;
     private boolean paymentRunsOut;
     private boolean appointmentStatusChanges;

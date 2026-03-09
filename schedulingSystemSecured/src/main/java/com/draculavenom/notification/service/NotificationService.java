@@ -38,10 +38,6 @@ public class NotificationService {
         User manager = userRepository.findById(user.getManagedBy())
         .orElseThrow(() -> new IllegalStateException("Manager not found"));
 
-        if(!settingsService.shouldNotifyAppointmentCreated(manager)){
-            return;
-        }
-
         appointmentNotificationService.sendAppointmentCreated(manager, appointment);
     }
 
@@ -63,22 +59,14 @@ public class NotificationService {
         User manager = userRepository.findById(user.getManagedBy())
             .orElseThrow(() -> new IllegalStateException("Manager not found"));
 
-        if(!settingsService.shouldNotifyAppointmentStatusChanges(manager)) {
-            return;
-        }
-
         try{
-            appointmentNotificationService.sendAppointmentStatusChanged(user, appointment, status);
+            appointmentNotificationService.sendAppointmentStatusChanged(user, appointment, status, manager);
         }catch(Exception e){
             System.err.println("Error sending appointment confirmed: " + e.getMessage());
         }
     }
 
     public void notifySubscriptionReminder(User manager, LocalDate expirationDate, long daysLeft){
-        if(!settingsService.shouldNotifyPaymentRunOut(manager)) {
-            return;
-        }
-
         try{
             managerNotificationService.sendSubscriptionReminder(manager, expirationDate, daysLeft);    
         }catch(Exception e){
@@ -96,10 +84,6 @@ public class NotificationService {
         User manager = userRepository.findById(user.getManagedBy())
             .orElseThrow(() -> new IllegalStateException("Manager not found"));
         
-        if(!settingsService.shouldNotifyAppointmentTimeManager(manager)) {
-            return;
-        }
-
         try{
             appointmentNotificationService.sendAppointmentTimeManager(manager, appointment, user);
         }catch(Exception e){
@@ -116,10 +100,6 @@ public class NotificationService {
         }
         User manager = userRepository.findById(user.getManagedBy())
             .orElseThrow(() -> new IllegalStateException("Manager not found"));
-        
-        if(!settingsService.shouldNotifyAppointmentTimeUser(manager)) {
-            return;
-        }
 
         try{
             appointmentNotificationService.sendAppointmentTimeUser(user, appointment, manager);

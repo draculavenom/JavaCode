@@ -8,6 +8,7 @@ import lombok.Getter;
 public class NotificationSettingsResponse {
     
     private boolean emailEnabled;
+    private boolean whatsappEnabled;
     private boolean appointmentCreated;
     private boolean paymentRunsOut;
     private boolean appointmentStatusChanges;
@@ -16,6 +17,7 @@ public class NotificationSettingsResponse {
 
     public NotificationSettingsResponse(NotificationSettings settings){
         this.emailEnabled = settings.isEmailEnabled();
+        this.whatsappEnabled = settings.isWhatsappEnabled();
         this.appointmentCreated = settings.isAppointmentCreated();
         this.paymentRunsOut = settings.isPaymentRunsOut();
         this.appointmentStatusChanges = settings.isAppointmentStatusChanges();
