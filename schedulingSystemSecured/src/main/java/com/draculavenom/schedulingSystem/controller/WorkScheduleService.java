@@ -118,13 +118,12 @@ public class WorkScheduleService {
                         .map(app -> app.getTime().withSecond(0).withNano(0))
                         .toList();
 
-        System.out.println("Busy times found: " + takenTimes);
+        
         List<LocalTime> allSlots = generateSlots(
                 config.getStartingTime(),
                 config.getEndingTime(),
                 config.getAppointmentDuration());
 
-        System.out.println("Manager's clients: " + clientIds);
 
         return allSlots.stream()
                 .filter(slot -> !takenTimes.contains(slot.withSecond(0).withNano(0)))
