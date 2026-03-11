@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/scheduling
+    url: jdbc:mysql://localhost:3306/scheduling?serverTimezone=America/New_York
     username: ---username---
     password: ---password---
     driver-class-name: com.mysql.cj.jdbc.Driver
