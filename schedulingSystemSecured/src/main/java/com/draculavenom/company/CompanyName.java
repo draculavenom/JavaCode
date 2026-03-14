@@ -41,8 +41,17 @@ public class CompanyName {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Column(name = "companyNumber", nullable = false)
+    private String companyNumber;
+
     public CompanyName(String nameCompany, User user){
         this.nameCompany = nameCompany;
         this.user = user;
+    }
+
+    public CompanyName(String nameCompany, User user, String companyNumber){
+        this.nameCompany = nameCompany;
+        this.user = user;
+        this.companyNumber = companyNumber;
     }
 }
