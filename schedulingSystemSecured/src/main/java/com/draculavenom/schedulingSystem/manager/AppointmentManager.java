@@ -3,6 +3,7 @@ package com.draculavenom.schedulingSystem.manager;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -150,5 +151,23 @@ public class AppointmentManager {
 			log.error("Error sending appointment status notification", e);
 		}
 		return saved;
+	}
+
+	public List<Appointment> getCancellableAppointments(Integer userId){
+		List<AppointmentStatus> validStatuses = List.of(
+			AppointmentStatus.SCHEDULED,
+			AppointmentStatus.CONFIRMED
+		);
+
+		return repository.findAllByUserIdAndStatusIn(userId, validStatuses)
+			.stream()
+			.filter(ap -> 
+				ap.getDate().isAfter(LocalDate.now()) ||
+				(ap.getDate().equals(LocalDate.now()) && ap.getTime().isAfter(LocalTime.now()))
+			)
+			.sorted(Comparator
+				.comparing(Appointment::getDate)
+				.thenComparing(Appointment::getTime))
+			.toList();
 	}
 }
