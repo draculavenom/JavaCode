@@ -29,6 +29,11 @@ public class WhatsappSession {
     private Integer userId;
     private LocalDateTime lastUpdated;
     private Integer tempAppointmentId;
+    private Integer managerId;
+    private String tempFirstName;
+    private String tempLastName;
+    private LocalDate tempDayOfBirth;
+    private String tempEmail;
 
     public WhatsappSession(){        
     }

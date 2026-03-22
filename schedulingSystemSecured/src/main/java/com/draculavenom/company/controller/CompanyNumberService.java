@@ -25,4 +25,11 @@ public class CompanyNumberService {
         return new CompanyNumberResponse(company.getCompanyNumber());
     }
 
+    public Integer getManagerIdByCompanyNumber(String companyNumber){
+        CompanyName company = repository.findByCompanyNumber(companyNumber)
+            .orElseThrow(() -> new RuntimeException("Company not found"));
+        
+        return company.getUser().getId();
+    }
+
 }

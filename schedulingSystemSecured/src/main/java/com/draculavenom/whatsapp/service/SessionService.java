@@ -41,8 +41,6 @@ public class SessionService {
         session.setState(BotState.START);
         session.setLastUpdated(LocalDateTime.now());
 
-        User user = userRepository.findByPhoneNumber(phone).orElseThrow(() -> new RuntimeException("User not found"));
-        session.setUserId(user.getId());
         return repository.save(session);
     }
 

@@ -6,9 +6,12 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.draculavenom.company.controller.CompanyNumberService;
+import com.draculavenom.notification.utilities.WhatsappService;
 import com.draculavenom.whatsapp.enums.BotState;
 import com.draculavenom.whatsapp.handler.BookingHandler;
 import com.draculavenom.whatsapp.handler.MenuHandler;
+import com.draculavenom.whatsapp.handler.RegisterHandler;
 import com.draculavenom.whatsapp.model.WhatsappSession;
 
 @Service
@@ -17,6 +20,9 @@ public class WhatsappBotService {
     @Autowired private SessionService sessionService;
     @Autowired private MenuHandler menuhandler;
     @Autowired private BookingHandler bookingHandler;
+    @Autowired private RegisterHandler registerHandler;
+    @Autowired private CompanyNumberService companyNumberService;
+    @Autowired private WhatsappService whatsappService;
 
     public void process(Map<String, Object> payload){
         
@@ -53,6 +59,21 @@ public class WhatsappBotService {
             }
             
             WhatsappSession session = sessionService.getOrCreate(phone);
+
+            if(session.getUserId() == null && session.getState() == BotState.START){
+                whatsappService.sendMessage(phone, "Welcome! Let's create your account.\nEnter your first name:");
+                session.setState(BotState.REGISTER_FIRST_NAME);
+                sessionService.save(session);
+                return;
+            }
+
+            String businessNumber = extractBusinessPhone(payload);
+            Integer managerId = companyNumberService.getManagerIdByCompanyNumber(businessNumber);
+
+            if(session.getManagerId() == null){
+                session.setManagerId(managerId);
+            }
+
             switch (session.getState()){
                 case START:
                 case MAIN_MENU:
@@ -66,6 +87,13 @@ public class WhatsappBotService {
                 case CANCEL_SELECT:
                 case CANCEL_CONFIRM:
                     bookingHandler.handle(session, phone, message, buttonId);
+                    break;
+                case REGISTER_FIRST_NAME:
+                case REGISTER_LAST_NAME:
+                case REGISTER_DAY_BIRTH:
+                case REGISTER_EMAIL:
+                case REGISTER_CONFIRM:
+                        registerHandler.handle(session, phone, message, buttonId);
                     break;
             }
         }catch(Exception e){
@@ -88,6 +116,14 @@ public class WhatsappBotService {
             e.printStackTrace();
             return null;
         }
+    }
+
+    public String extractBusinessPhone(Map<String, Object> payload){
+        Map entry = ((List<Map>)payload.get("entry")).get(0);
+        Map changes = ((List<Map>)entry.get("changes")).get(0);
+        Map value = (Map) changes.get("value");
+        Map metadata = (Map) value.get("metadata");
+        return (String) metadata.get("display_phone_number");
     }
 
     public String extractMessage(Map<String, Object> payload){

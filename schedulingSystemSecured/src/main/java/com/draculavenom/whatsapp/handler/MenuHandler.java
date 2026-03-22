@@ -8,6 +8,9 @@ import org.springframework.stereotype.Component;
 import com.draculavenom.notification.utilities.WhatsappService;
 import com.draculavenom.schedulingSystem.manager.AppointmentManager;
 import com.draculavenom.schedulingSystem.model.Appointment;
+import com.draculavenom.security.user.Role;
+import com.draculavenom.security.user.User;
+import com.draculavenom.security.user.UserRepository;
 import com.draculavenom.whatsapp.enums.BotState;
 import com.draculavenom.whatsapp.model.WhatsappSession;
 import com.draculavenom.whatsapp.service.SessionService;
@@ -41,6 +44,11 @@ public class MenuHandler {
                 }
                 whatsappService.sendAppointmentList(phone, appointments);
                 session.setState(BotState.CANCEL_SELECT);
+                break;
+            
+            case "REGISTER":
+                whatsappService.sendMessage(phone, "Enter your first name:");   
+                session.setState(BotState.REGISTER_FIRST_NAME);
                 break;
         }
         sessionService.save(session);
