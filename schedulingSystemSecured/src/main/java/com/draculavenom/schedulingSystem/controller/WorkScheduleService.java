@@ -86,10 +86,17 @@ public class WorkScheduleService {
     private List<LocalTime> generateSlots(LocalTime start, LocalTime end, Integer durationMinutes) {
         List<LocalTime> slots = new ArrayList<>();
         LocalTime current = start;
-
-        while (!current.plusMinutes(durationMinutes).isAfter(end)) {
+        if(durationMinutes == null || durationMinutes <= 0)
+        	durationMinutes = 15;
+        
+        int safetyCounter = 0;
+        while (!current.plusMinutes(durationMinutes).isAfter(end) && safetyCounter < 1000) {
             slots.add(current);
-            current = current.plusMinutes(durationMinutes);
+            LocalTime next = current.plusMinutes(durationMinutes);
+            if (next.isBefore(current))
+                break;
+            current = next;
+            safetyCounter++;
         }
 
         return slots;
@@ -113,9 +120,9 @@ public class WorkScheduleService {
         final List<LocalTime> takenTimes = (clientIds.isEmpty())
                 ? Collections.emptyList()
                 : appointmentRepository
-                        .findAllByUserIdInAndDateAndStatusNot(clientIds, date, AppointmentStatus.CANCELLED)
+                        .findTimesByUserIdInAndDateAndStatusNot(clientIds, date, AppointmentStatus.CANCELLED)
                         .stream()
-                        .map(app -> app.getTime().withSecond(0).withNano(0))
+                        .map(app -> app.withSecond(0).withNano(0))
                         .toList();
 
         
