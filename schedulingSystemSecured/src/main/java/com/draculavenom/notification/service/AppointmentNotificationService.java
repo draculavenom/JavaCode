@@ -62,6 +62,14 @@ public class AppointmentNotificationService {
             default -> "hass been updated";
         };
 
+        String commentsSection = switch(status){
+            case CONFIRMED -> "\nAdditional info:\n" + appointment.getComment() + "\n";
+            case CANCELLED -> "\nReason for cancellation:\n" + appointment.getComment() + "\n";
+            case COMPLETED -> "\nManager notes:\n" + appointment.getComment() + "\n";
+            default -> "\nComments:\n" + appointment.getComment() + "\n";
+        };
+        
+
         String body = """
             Hello %s,
 
@@ -71,13 +79,14 @@ public class AppointmentNotificationService {
             Time: %s 
 
             %s
+            %s
             
             If you have any questions, please contact support.
             """.formatted(
                 user.getName(), 
                 appointment.getDate(),
                 appointment.getTime(),
-                statusMessage
+                statusMessage, commentsSection
             );
 
         if(settingsService.shouldNotifyAppointmentStatusChanges(manager)){

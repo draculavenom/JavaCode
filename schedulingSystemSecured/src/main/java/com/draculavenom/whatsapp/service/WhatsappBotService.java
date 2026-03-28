@@ -79,12 +79,15 @@ public class WhatsappBotService {
                 case MAIN_MENU:
                     menuhandler.handle(session, phone, buttonId);
                     break;
+                
+                case BOOKING_SUGGEST:
                 case BOOKING_DATE:
                 case BOOKING_TIME:
                 case BOOKING_CONFIRM:
                     bookingHandler.handle(session, phone, message, buttonId);
                     break;
                 case CANCEL_SELECT:
+                case CANCEL_REASON:
                 case CANCEL_CONFIRM:
                     bookingHandler.handle(session, phone, message, buttonId);
                     break;

@@ -51,7 +51,7 @@ public class AppointmentManager {
 	private Appointment cancelInternal(Appointment appointment, String comment, boolean systemAction) {
 		if(!systemAction) {
 			if(comment == null || comment.trim().isEmpty()) {
-				throw new IllegalArgumentException("Comment is required wen cancelling");
+				throw new IllegalArgumentException("Comment is required when cancelling");
 			}
 			appointment.setComment(comment);
 		} else {

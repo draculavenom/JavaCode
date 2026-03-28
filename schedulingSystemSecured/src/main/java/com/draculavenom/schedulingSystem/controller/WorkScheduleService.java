@@ -2,7 +2,9 @@ package com.draculavenom.schedulingSystem.controller;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -86,10 +88,17 @@ public class WorkScheduleService {
     private List<LocalTime> generateSlots(LocalTime start, LocalTime end, Integer durationMinutes) {
         List<LocalTime> slots = new ArrayList<>();
         LocalTime current = start;
-
-        while (!current.plusMinutes(durationMinutes).isAfter(end)) {
+        if(durationMinutes == null || durationMinutes <= 0)
+        	durationMinutes = 15;
+        
+        int safetyCounter = 0;
+        while (!current.plusMinutes(durationMinutes).isAfter(end) && safetyCounter < 1000) {
             slots.add(current);
-            current = current.plusMinutes(durationMinutes);
+            LocalTime next = current.plusMinutes(durationMinutes);
+            if (next.isBefore(current))
+                break;
+            current = next;
+            safetyCounter++;
         }
 
         return slots;
@@ -113,9 +122,9 @@ public class WorkScheduleService {
         final List<LocalTime> takenTimes = (clientIds.isEmpty())
                 ? Collections.emptyList()
                 : appointmentRepository
-                        .findAllByUserIdInAndDateAndStatusNot(clientIds, date, AppointmentStatus.CANCELLED)
+                        .findTimesByUserIdInAndDateAndStatusNot(clientIds, date, AppointmentStatus.CANCELLED)
                         .stream()
-                        .map(app -> app.getTime().withSecond(0).withNano(0))
+                        .map(app -> app.withSecond(0).withNano(0))
                         .toList();
 
         
@@ -128,6 +137,24 @@ public class WorkScheduleService {
         return allSlots.stream()
                 .filter(slot -> !takenTimes.contains(slot.withSecond(0).withNano(0)))
                 .toList();
+    }
+
+    public Optional<LocalDateTime> getNextAvailableSlot(Integer managerId){
+        LocalDate today = LocalDate.now();
+        LocalTime now = LocalTime.now();
+        
+        for(int i = 0; i < 7; i++){
+            LocalDate date = today.plusDays(i);
+            List<LocalTime> slots = getAvailableSlots(managerId, date);
+            if(slots.isEmpty()) continue;
+
+            for(LocalTime slot : slots){
+                if(i > 0 || slot.isAfter(now)){
+                    return Optional.of(LocalDateTime.of(date, slot));
+                }
+            }
+        }
+        return Optional.empty();
     }
 
 }

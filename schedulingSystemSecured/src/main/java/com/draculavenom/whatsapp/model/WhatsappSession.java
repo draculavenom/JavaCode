@@ -3,7 +3,9 @@ package com.draculavenom.whatsapp.model;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.List;
 
+import com.draculavenom.schedulingSystem.model.Appointment;
 import com.draculavenom.whatsapp.enums.BotState;
 
 import jakarta.persistence.Entity;
@@ -29,11 +31,14 @@ public class WhatsappSession {
     private Integer userId;
     private LocalDateTime lastUpdated;
     private Integer tempAppointmentId;
+    private String cancelReason;
     private Integer managerId;
     private String tempFirstName;
     private String tempLastName;
     private LocalDate tempDayOfBirth;
     private String tempEmail;
+    private int currentPage;
+    private List<LocalTime> currentSlots;
 
     public WhatsappSession(){        
     }

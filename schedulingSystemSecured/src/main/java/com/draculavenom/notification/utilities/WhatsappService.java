@@ -4,6 +4,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -97,10 +99,15 @@ public class WhatsappService {
         return date + " - " + time;
     }
 
-    public void sendAppointmentList(String phone, List<Appointment> appointments){
+    public void sendAppointmentList(String phone, List<Appointment> appointments, int page){
+        int pageSize = 8;
+        int start = page * pageSize;
+        int end = Math.min(start + pageSize, appointments.size());
+
         StringBuilder rows = new StringBuilder();
 
-        for(Appointment ap : appointments){
+        for(int i = start; i < end; i++){
+            Appointment ap = appointments.get(i);
             rows.append("""
                 {
                     "id": "%s",
@@ -109,7 +116,25 @@ public class WhatsappService {
                 """.formatted(ap.getId(), formatAppointment(ap)));
         }
 
-        String rowsFinal = rows.length() > 0 ? rows.substring(0, rows.length() - 1) : "";
+        if(page > 0){
+            rows.append("""
+                {
+                    "id": "PREV_PAGE_%d",
+                    "title": "Previous"   
+                },
+            """.formatted(page - 1));
+        }
+
+        if(end < appointments.size()){
+            rows.append("""
+                {
+                    "id": "NEXT_PAGE_%d",
+                    "title": "Next"
+                },
+            """.formatted(page + 1));
+        }
+
+        String rowsFinal = rows.substring(0, rows.length() - 1);
 
         String body = """
         {
@@ -137,4 +162,147 @@ public class WhatsappService {
         """.formatted(phone, rowsFinal);
         sendRaw(body);
     }
+
+    public void sendConfirmationButtons(String phone){
+        String body = """
+        {
+            "messaging_product": "whatsapp",
+            "to": "%s",
+            "type": "interactive",
+            "interactive": {
+                "type": "button",
+                "body": {
+                    "text": "Are you sure you want to cancel this appointment?"
+                },
+                "action": {
+                    "buttons": [
+                    {
+                        "type": "reply",
+                        "reply": {
+                            "id": "CONFIRM_CANCEL",
+                            "title": "Yes, cancel"
+                        }
+                    },
+                    {
+                        "type": "reply",
+                        "reply": {
+                            "id": "KEEP_APPOINTMENT",
+                            "title": "No"
+                        }
+                    }
+                    ]
+                }    
+            }
+        }        
+        """.formatted(phone);
+        sendRaw(body);
+    }
+
+    public void sendSuggestedSlot(String phone, LocalDateTime slot){
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEE dd MMM", Locale.ENGLISH);
+        String date = slot.toLocalDate().format(formatter);
+        String time = slot.toLocalTime().toString().substring(0,5);
+        String body = """
+        {
+            "messaging_product": "whatsapp",
+            "to": "%s",
+            "type": "interactive",
+            "interactive": {
+                "type": "button",
+                "body": {
+                    "text": "Next available appointment:\\n%s %s\\n\\nDo you want to book it?"
+                },
+                "action": {
+                    "buttons": [
+                    {
+                        "type": "reply",
+                        "reply": {
+                            "id": "ACCEPT_SLOT",
+                            "title": "Accept"
+                        }
+                    },
+                    {
+                        "type": "reply",
+                        "reply": {
+                            "id": "CHANGE_SLOT",
+                            "title": "Choose another"
+                        }
+                    }
+                    ]
+                }    
+            }
+        }
+                """.formatted(phone, date, time);
+        sendRaw(body);
+    }
+
+    public void sendAvailableSlots(String phone, List<LocalTime> slots, int page){
+        int pageSize = 8;
+        int totalPages = (slots.size() + pageSize - 1) / pageSize;
+        int start = page * pageSize;
+        int end = Math.min(start + pageSize, slots.size());
+        if(start >= slots.size()){
+            return;
+        }
+        List<LocalTime> pageSlots = slots.subList(start, end);
+
+        StringBuilder rows = new StringBuilder();
+        for(LocalTime t : pageSlots){
+            String formatted = t.toString().substring(0,5);
+            rows.append("""
+                {
+                    "id": "%s",
+                    "title": "%s"
+                },
+            """.formatted(formatted, formatted));
+        }
+
+        if(page > 0){
+            rows.append("""
+                {
+                    "id": "PREV_PAGE_%d",
+                    "title": "Previous page"
+                },
+            """.formatted(page - 1));
+        }
+
+        if(page < totalPages - 1){
+            rows.append("""
+                {
+                    "id": "NEXT_PAGE_%d",
+                    "title": "Next page"
+                },
+            """.formatted(page + 1));
+        }
+
+        String rowsFinal = rows.substring(0, rows.length() -1);
+
+        String body = """
+        {
+            "messaging_product": "whatsapp",
+            "to": "%s",
+            "type": "interactive",
+            "interactive": {
+                "type": "list",
+                "body": {
+                    "text": "Select a time"
+                },
+                "action": {
+                    "button": "Available times",
+                    "sections": [
+                        {
+                            "title": "Slots",
+                            "rows": [
+                                %s
+                            ]
+                        }
+                    ]
+                }
+            }
+        }
+        """.formatted(phone, rowsFinal);
+
+        sendRaw(body);
+    }
+
 }
