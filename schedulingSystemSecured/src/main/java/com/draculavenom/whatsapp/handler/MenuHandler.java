@@ -11,12 +11,10 @@ import com.draculavenom.notification.utilities.WhatsappService;
 import com.draculavenom.schedulingSystem.controller.WorkScheduleService;
 import com.draculavenom.schedulingSystem.manager.AppointmentManager;
 import com.draculavenom.schedulingSystem.model.Appointment;
-import com.draculavenom.security.user.Role;
-import com.draculavenom.security.user.User;
-import com.draculavenom.security.user.UserRepository;
 import com.draculavenom.whatsapp.enums.BotState;
 import com.draculavenom.whatsapp.model.WhatsappSession;
 import com.draculavenom.whatsapp.service.SessionService;
+import com.draculavenom.whatsappConfig.model.WhatsappConfig;
 
 @Component
 public class MenuHandler {
@@ -26,9 +24,9 @@ public class MenuHandler {
     @Autowired private AppointmentManager appointmentManager;
     @Autowired private WorkScheduleService workScheduleService;
 
-    public void handle(WhatsappSession session, String phone, String buttonId){
+    public void handle(WhatsappConfig config, WhatsappSession session, String phone, String buttonId){
         if(buttonId == null){
-            whatsappService.sendMainMenu(phone);
+            whatsappService.sendMainMenu(config, phone);
             session.setState(BotState.MAIN_MENU);
             sessionService.save(session);
             return;
@@ -38,13 +36,13 @@ public class MenuHandler {
             case "BOOK":
                 Optional<LocalDateTime> nextSlot = workScheduleService.getNextAvailableSlot(session.getManagerId());
                 if(nextSlot.isEmpty()){
-                    whatsappService.sendMessage(phone, "No available slots");
+                    whatsappService.sendMessage(config, phone, "No available slots");
                     return;
                 }
                 LocalDateTime slot = nextSlot.get();
                 session.setTempDate(slot.toLocalDate());
                 session.setTempTime(slot.toLocalTime());
-                whatsappService.sendSuggestedSlot(phone, slot);
+                whatsappService.sendSuggestedSlot(config, phone, slot);
                 sessionService.save(session);
                 session.setState(BotState.BOOKING_SUGGEST);
                 break;
@@ -52,16 +50,16 @@ public class MenuHandler {
             case "CANCEL":
                 List<Appointment> appointments = appointmentManager.getCancellableAppointments(session.getUserId());
                 if(appointments.isEmpty()){
-                    whatsappService.sendMessage(phone, "No appointments to cancel");
+                    whatsappService.sendMessage(config, phone, "No appointments to cancel");
                     return;
                 }
                 session.setCurrentPage(0);
-                whatsappService.sendAppointmentList(phone, appointments, 0);
+                whatsappService.sendAppointmentList(config, phone, appointments, 0);
                 session.setState(BotState.CANCEL_SELECT);
                 break;
             
             case "REGISTER":
-                whatsappService.sendMessage(phone, "Enter your first name:");   
+                whatsappService.sendMessage(config, phone, "Enter your first name:");   
                 session.setState(BotState.REGISTER_FIRST_NAME);
                 break;
         }

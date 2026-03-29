@@ -33,4 +33,10 @@ public class ManagementModulesService {
 
         return repository.save(modules);
     }
+
+    public ManagementModules getByManager(Integer manager){
+        return repository.findByManagerId(manager).orElse(null);
+    }
+
+
 }

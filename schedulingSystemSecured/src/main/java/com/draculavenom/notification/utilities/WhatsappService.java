@@ -8,7 +8,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -16,21 +15,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import com.draculavenom.schedulingSystem.model.Appointment;
+import com.draculavenom.whatsappConfig.model.WhatsappConfig;
 
 @Service
 public class WhatsappService {
-    @Value("${whatsapp.token}")
-    private String token;
 
-    @Value("${whatsapp.phone-number-id}")
-    private String phoneNumberId;
     private final RestTemplate restTemplate = new RestTemplate();
 
-    public void sendMessage(String phone, String message) {
-        String url = "https://graph.facebook.com/v19.0/" + phoneNumberId + "/messages";
+    public void sendMessage(WhatsappConfig config, String phone, String message) {
+        String url = "https://graph.facebook.com/v19.0/" + config.getPhoneNumberId() + "/messages";
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(token);
+        headers.setBearerAuth(config.getAccessToken());
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         Map<String, Object> body = new HashMap<>();
@@ -46,7 +42,7 @@ public class WhatsappService {
 
     }
 
-    public void sendMainMenu(String phone){
+    public void sendMainMenu(WhatsappConfig config, String phone){
         String body = """
         {
             "messaging_product": "whatsapp",
@@ -78,14 +74,14 @@ public class WhatsappService {
             }
         }
                 """.formatted(phone);
-        sendRaw(body);
+        sendRaw(config, body);
     }
 
-    public void sendRaw(String jsonBody){
-        String url = "https://graph.facebook.com/v19.0/" + phoneNumberId + "/messages";
+    public void sendRaw(WhatsappConfig config, String jsonBody){
+        String url = "https://graph.facebook.com/v19.0/" + config.getPhoneNumberId() + "/messages";
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(token);
+        headers.setBearerAuth(config.getAccessToken());
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<String> request = new HttpEntity<>(jsonBody, headers);
         restTemplate.postForObject(url, request, String.class);
@@ -99,7 +95,7 @@ public class WhatsappService {
         return date + " - " + time;
     }
 
-    public void sendAppointmentList(String phone, List<Appointment> appointments, int page){
+    public void sendAppointmentList(WhatsappConfig config, String phone, List<Appointment> appointments, int page){
         int pageSize = 8;
         int start = page * pageSize;
         int end = Math.min(start + pageSize, appointments.size());
@@ -160,10 +156,10 @@ public class WhatsappService {
             }
         }    
         """.formatted(phone, rowsFinal);
-        sendRaw(body);
+        sendRaw(config, body);
     }
 
-    public void sendConfirmationButtons(String phone){
+    public void sendConfirmationButtons(WhatsappConfig config, String phone){
         String body = """
         {
             "messaging_product": "whatsapp",
@@ -195,10 +191,10 @@ public class WhatsappService {
             }
         }        
         """.formatted(phone);
-        sendRaw(body);
+        sendRaw(config, body);
     }
 
-    public void sendSuggestedSlot(String phone, LocalDateTime slot){
+    public void sendSuggestedSlot(WhatsappConfig config, String phone, LocalDateTime slot){
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEE dd MMM", Locale.ENGLISH);
         String date = slot.toLocalDate().format(formatter);
         String time = slot.toLocalTime().toString().substring(0,5);
@@ -233,10 +229,10 @@ public class WhatsappService {
             }
         }
                 """.formatted(phone, date, time);
-        sendRaw(body);
+        sendRaw(config, body);
     }
 
-    public void sendAvailableSlots(String phone, List<LocalTime> slots, int page){
+    public void sendAvailableSlots(WhatsappConfig config, String phone, List<LocalTime> slots, int page){
         int pageSize = 8;
         int totalPages = (slots.size() + pageSize - 1) / pageSize;
         int start = page * pageSize;
@@ -302,7 +298,7 @@ public class WhatsappService {
         }
         """.formatted(phone, rowsFinal);
 
-        sendRaw(body);
+        sendRaw(config, body);
     }
 
 }

@@ -46,9 +46,9 @@ public class AppointmentNotificationService {
                 emailService.sendSimpleMessage(manager.getEmail(), subject, body);
             }
 
-            if(settingsService.shouldNotifyAppointmentCreatedByWhatsapp(manager) && manager.getPhoneNumber() != null){
+            /*if(settingsService.shouldNotifyAppointmentCreatedByWhatsapp(manager) && manager.getPhoneNumber() != null){
                 whatsappService.sendMessage(manager.getPhoneNumber(), body);
-            }
+            }*/
     }
 
     public void sendAppointmentStatusChanged(User user, Appointment appointment, AppointmentStatus status, User manager){
@@ -93,9 +93,9 @@ public class AppointmentNotificationService {
             emailService.sendSimpleMessage(user.getEmail(), subject, body);
         }
 
-        if(settingsService.shouldNotifyAppointmentStatusChangesByWhatsapp(manager) && user.getPhoneNumber() != null){
+        /*if(settingsService.shouldNotifyAppointmentStatusChangesByWhatsapp(manager) && user.getPhoneNumber() != null){
             whatsappService.sendMessage(user.getPhoneNumber(), body);
-        }
+        }*/
     }
 
     public void sendAppointmentTimeManager(User manager, Appointment appointment,  User user){
@@ -122,9 +122,9 @@ public class AppointmentNotificationService {
             emailService.sendSimpleMessage(manager.getEmail(), subject, body); 
         }
 
-        if(settingsService.shouldNotifyAppointmentTimeManagerByWhatsapp(manager) && manager.getPhoneNumber() != null){
+        /*if(settingsService.shouldNotifyAppointmentTimeManagerByWhatsapp(manager) && manager.getPhoneNumber() != null){
             whatsappService.sendMessage(manager.getPhoneNumber(), body);
-        }
+        }*/
     }
 
     public void sendAppointmentTimeUser(User user, Appointment appointment, User manager){
@@ -150,9 +150,9 @@ public class AppointmentNotificationService {
             emailService.sendSimpleMessage(user.getEmail(), subject, body); 
         }
 
-        if(settingsService.shouldNotifyAppointmentTimeUserByWhatsapp(manager) && user.getPhoneNumber() != null){
+        /*if(settingsService.shouldNotifyAppointmentTimeUserByWhatsapp(manager) && user.getPhoneNumber() != null){
             whatsappService.sendMessage(user.getPhoneNumber(), body);
-        }
+        }*/
     }
 
 }

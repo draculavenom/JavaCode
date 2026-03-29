@@ -3,6 +3,7 @@ package com.draculavenom.whatsapp.controller;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,8 +34,10 @@ public class WhatsappWebhookController {
         @RequestParam("hub.challenge") String challenge
     ){
         
-        String VERIFY_TOKEN = "WhatsappBotTest_456";
-        if("subscribe".equals(mode) && VERIFY_TOKEN.equals(token)){
+        @Value("${whatsapp.verify.token}")
+        private String verifyToken;
+        
+        if("subscribe".equals(mode) && verifyToken.equals(token)){
             return ResponseEntity.ok(challenge);
         }else{
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();

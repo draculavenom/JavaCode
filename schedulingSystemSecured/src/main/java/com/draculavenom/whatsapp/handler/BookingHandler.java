@@ -17,6 +17,7 @@ import com.draculavenom.schedulingSystem.model.AppointmentStatus;
 import com.draculavenom.whatsapp.enums.BotState;
 import com.draculavenom.whatsapp.model.WhatsappSession;
 import com.draculavenom.whatsapp.service.SessionService;
+import com.draculavenom.whatsappConfig.model.WhatsappConfig;
 
 @Component
 public class BookingHandler {
@@ -26,20 +27,20 @@ public class BookingHandler {
     @Autowired private SessionService sessionService;
     @Autowired private WorkScheduleService workScheduleService;
 
-    public void handle(WhatsappSession session, String phone, String message, String buttonId){
+    public void handle(WhatsappConfig config, WhatsappSession session, String phone, String message, String buttonId){
         switch (session.getState()){
 
             case BOOKING_SUGGEST:
                 if(buttonId == null){
-                    whatsappService.sendMessage(phone, "Please use the buttons");
+                    whatsappService.sendMessage(config, phone, "Please use the buttons");
                     return;
                 }
                 if("ACCEPT_SLOT".equals(buttonId)){
                     session.setState(BotState.BOOKING_CONFIRM);
-                    whatsappService.sendMessage(phone, "Confirm appointment:\n" + session.getTempDate() + " " + session.getTempTime());
+                    whatsappService.sendMessage(config, phone, "Confirm appointment:\n" + session.getTempDate() + " " + session.getTempTime());
                 } else if ("CHANGE_SLOT".equals(buttonId)){
                     session.setState(BotState.BOOKING_DATE);
-                    whatsappService.sendMessage(phone, "Enter the date (YYYY-MM-DD)");
+                    whatsappService.sendMessage(config, phone, "Enter the date (YYYY-MM-DD)");
                 }
                 break;
             
@@ -47,7 +48,7 @@ public class BookingHandler {
                 LocalDate date = LocalDate.parse(message);
                 List<LocalTime> slots = workScheduleService.getAvailableSlots(session.getManagerId(), date);
                 if(slots.isEmpty()){
-                    whatsappService.sendMessage(phone, "No available times for that date.");
+                    whatsappService.sendMessage(config, phone, "No available times for that date.");
                     return;
                 }
                 session.setTempDate(date);
@@ -55,13 +56,13 @@ public class BookingHandler {
                 int pageSizes = 8;
                 int ends = Math.min(pageSizes, slots.size());
                 session.setCurrentSlots(new ArrayList<>(slots.subList(0, ends)));
-                whatsappService.sendAvailableSlots(phone, slots, 0);
+                whatsappService.sendAvailableSlots(config, phone, slots, 0);
                 session.setState(BotState.BOOKING_TIME);
                 break;
             
             case BOOKING_TIME:
                 if(buttonId == null){
-                    whatsappService.sendMessage(phone, "Please select a time from the list");
+                    whatsappService.sendMessage(config, phone, "Please select a time from the list");
                     return;
                 }
 
@@ -74,7 +75,7 @@ public class BookingHandler {
                     int end = Math.min(start + pageSize, slotsTime.size());
                     if(start >= slotsTime.size()) return;
                     session.setCurrentSlots(new ArrayList<>(slotsTime.subList(start, end)));
-                    whatsappService.sendAvailableSlots(phone, slotsTime, page);
+                    whatsappService.sendAvailableSlots(config, phone, slotsTime, page);
                     return;
                 }
                 
@@ -86,13 +87,13 @@ public class BookingHandler {
                     .toList();
                 
                 if(!availableSlots.contains(selectedTime)){
-                    whatsappService.sendMessage(phone, "Invalid time. Please choose an available slot");
+                    whatsappService.sendMessage(config, phone, "Invalid time. Please choose an available slot");
                     return;
                 }
 
                 session.setTempTime(selectedTime);
                 session.setState(BotState.BOOKING_CONFIRM);
-                whatsappService.sendMessage(phone, "Confirm appointment:\n" + session.getTempDate() + " " + session.getTempTime());
+                whatsappService.sendMessage(config, phone, "Confirm appointment:\n" + session.getTempDate() + " " + session.getTempTime());
                 break;
 
             case BOOKING_CONFIRM:
@@ -104,9 +105,9 @@ public class BookingHandler {
 
                 try{
                     appointmentManager.create(ap);
-                    whatsappService.sendMessage(phone, "Appointment created successfully");
+                    whatsappService.sendMessage(config, phone, "Appointment created successfully");
                 }catch(Exception e){
-                    whatsappService.sendMessage(phone, "Error: " + e.getMessage());
+                    whatsappService.sendMessage(config, phone, "Error: " + e.getMessage());
                 }
 
                 session.setState(BotState.MAIN_MENU);
@@ -114,19 +115,19 @@ public class BookingHandler {
 
             case CANCEL_SELECT:
                 if(buttonId == null){
-                    whatsappService.sendMessage(phone, "Please select and appointment from the list");
+                    whatsappService.sendMessage(config, phone, "Please select and appointment from the list");
                     return;
                 }
                 if(buttonId.startsWith("NEXT_PAGE_") || buttonId.startsWith("PREV_PAGE_")){
                     int page = Integer.parseInt(buttonId.split("_")[2]);
                     session.setCurrentPage(page);
                     List<Appointment> appointments = appointmentManager.getCancellableAppointments(session.getUserId());
-                    whatsappService.sendAppointmentList(phone, appointments, page);
+                    whatsappService.sendAppointmentList(config, phone, appointments, page);
                     return;
                 }
                 
                 session.setTempAppointmentId(Integer.parseInt(buttonId));
-                whatsappService.sendMessage(phone, "Please enter the reason for cancellation");
+                whatsappService.sendMessage(config, phone, "Please enter the reason for cancellation");
                 session.setState(BotState.CANCEL_REASON);
                 break;
             
@@ -138,11 +139,11 @@ public class BookingHandler {
                     return;
                 }
                 if(message == null || message.isBlank()){
-                    whatsappService.sendMessage(phone, "Please enter the reason");
+                    whatsappService.sendMessage(config, phone, "Please enter the reason");
                     return;
                 }
                 session.setCancelReason(message);
-                whatsappService.sendConfirmationButtons(phone);
+                whatsappService.sendConfirmationButtons(config, phone);
                 session.setState(BotState.CANCEL_CONFIRM);
                 break;
 
@@ -154,7 +155,7 @@ public class BookingHandler {
                 String reason = session.getCancelReason();
 
                 if(reason == null || reason.isBlank()){
-                    whatsappService.sendMessage(phone, "Error: Comments is required when cancelling");
+                    whatsappService.sendMessage(config, phone, "Error: Comments is required when cancelling");
                     session.setState(BotState.CANCEL_REASON);
                     return;
                 }
@@ -162,12 +163,12 @@ public class BookingHandler {
                 if("CONFIRM_CANCEL".equals(buttonId)){                    
                     try{
                         appointmentManager.getAppointmentAndCancelIt(apId, reason);
-                        whatsappService.sendMessage(phone, "Appointment cancelled successfully");
+                        whatsappService.sendMessage(config, phone, "Appointment cancelled successfully");
                     }catch(Exception e){
-                        whatsappService.sendMessage(phone, "Error: " + e.getMessage());
+                        whatsappService.sendMessage(config, phone, "Error: " + e.getMessage());
                     }
                 } else if("KEEP_APPOINTMENT".equals(buttonId)){
-                    whatsappService.sendMessage(phone, "Your appointment was not cancelled");
+                    whatsappService.sendMessage(config, phone, "Your appointment was not cancelled");
                 }
                 session.setCancelReason(null);
                 session.setTempAppointmentId(null);
