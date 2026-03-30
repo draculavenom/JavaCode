@@ -60,6 +60,8 @@ public class SecurityConfiguration {
         .requestMatchers(
                 "/api/v1/auth/**",
                 "/api/v1/Manager/select",
+                "/api/v1/personalization/public/**",
+                "/logos/**",
                 "/v2/api-docs",
                 "/v3/api-docs",
                 "/v3/api-docs/**",
@@ -73,7 +75,9 @@ public class SecurityConfiguration {
         )
           .permitAll()
 
-
+        .requestMatchers("/api/v1/personalization/my-profile/**").hasRole(MANAGER.name())
+        .requestMatchers(GET, "/api/v1/personalization/my-profile/**").hasAuthority(MANAGER_READ.name())
+        .requestMatchers(PUT, "/api/v1/personalization/my-profile/**").hasAuthority(MANAGER_UPDATE.name())
         .requestMatchers("/api/v1/management/**").hasAnyRole(ADMIN.name(), MANAGER.name())
 
 

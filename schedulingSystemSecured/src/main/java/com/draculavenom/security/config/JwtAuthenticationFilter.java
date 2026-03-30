@@ -47,7 +47,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     if (request.getServletPath().contains("/api/v1/auth")) {
       filterChain.doFilter(request, response);
       return;
-    }
+    }  
     final String authHeader = request.getHeader("Authorization");
     
 //    System.out.println(authHeader);//These following lines are to allow me check the headers in the request, to see what the server (backend) is actually getting.
