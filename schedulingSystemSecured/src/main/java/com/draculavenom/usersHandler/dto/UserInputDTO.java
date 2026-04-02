@@ -20,5 +20,7 @@ public class UserInputDTO {
 	private String phoneNumber;
 	private LocalDate dateOfBirth;
 	private int managedBy;
+	private Integer company;
+	private String companyName;
 	private String role;
 }

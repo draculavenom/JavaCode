@@ -43,7 +43,7 @@ public class AppointmentService {
             if(user.getManagedBy() != null) {
                 manager = usersById.get(user.getManagedBy());
                 if(manager != null) {
-                    company = manager.getCompanyName();
+                    company = manager.getCompany();
                 }
             }
 
@@ -58,7 +58,7 @@ public class AppointmentService {
             dto.setLastName(user.getLastName());
 
             String companyName = Optional.ofNullable(manager)
-                .map(User::getCompanyName)
+                .map(User::getCompany)
                 .map(CompanyName::getNameCompany)
                 .orElse("");
 

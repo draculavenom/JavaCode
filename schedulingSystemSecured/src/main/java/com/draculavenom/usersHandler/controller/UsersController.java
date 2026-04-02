@@ -37,7 +37,7 @@ public class UsersController {
 	public List<UserDTO> getAll(){
 		List<UserDTO> users = new ArrayList<UserDTO>();
 		repository.findAll().stream().forEach(u -> {
-			UserDTO user = new UserDTO(u.getId(), u.getEmail(), u.getFirstName() + " " + u.getLastName(), u.getPhoneNumber(), u.getDateOfBirth(), u.getManagedBy(), u.getRole().name(), u.getPasswordChange());
+			UserDTO user = new UserDTO(u.getId(), u.getEmail(), u.getFirstName() + " " + u.getLastName(), u.getPhoneNumber(), u.getDateOfBirth(), u.getManagedBy(), u.getCompany() != null ? u.getCompany().getId() : 0, u.getRole().name(), u.getPasswordChange());
 			users.add(user);
 		});
 		return users;
@@ -48,7 +48,7 @@ public class UsersController {
 	public UserInputDTO get(@PathVariable int id) {
 		User fullUser = repository.getById(id);
 		if(fullUser != null) {
-			UserInputDTO user = new UserInputDTO(fullUser.getId(), fullUser.getEmail(), fullUser.getFirstName(), fullUser.getLastName(), "", fullUser.getPhoneNumber(), fullUser.getDateOfBirth(), (int) (fullUser.getManagedBy() != null ? fullUser.getManagedBy() : 0), fullUser.getRole().name());
+			UserInputDTO user = new UserInputDTO(fullUser.getId(), fullUser.getEmail(), fullUser.getFirstName(), fullUser.getLastName(), "", fullUser.getPhoneNumber(), fullUser.getDateOfBirth(), (int) (fullUser.getManagedBy() != null ? fullUser.getManagedBy() : 0), fullUser.getCompany() != null ? fullUser.getCompany().getId() : 0, fullUser.getRole().name());
 			return user;
 		}
 		return null;
@@ -60,14 +60,14 @@ public class UsersController {
 		Optional<User> optionalUser = repository.findByEmail(email);
 		if(!optionalUser.isEmpty()) {
 			User fullUser = optionalUser.get();
-			UserDTO user = new UserDTO(fullUser.getId(), fullUser.getEmail(), fullUser.getFirstName() + " " + fullUser.getLastName(), fullUser.getPhoneNumber(), fullUser.getDateOfBirth(), fullUser.getManagedBy(), fullUser.getRole().name(), fullUser.getPasswordChange());
+			UserDTO user = new UserDTO(fullUser.getId(), fullUser.getEmail(), fullUser.getFirstName() + " " + fullUser.getLastName(), fullUser.getPhoneNumber(), fullUser.getDateOfBirth(), fullUser.getManagedBy(), fullUser.getCompany() != null ? fullUser.getCompany().getId() : 0, fullUser.getRole().name(), fullUser.getPasswordChange());
 			return user;
 		}
 		return null;
 	}
 	
 	@PostMapping
-	@PreAuthorize("hasAuthority('admin:create')")
+	@PreAuthorize("hasAnyAuthority('admin:create', 'owner:create')")
 	public ResponseEntity<UserInputDTO> create(@RequestBody UserInputDTO user) {
 		User fullUser = managerService.create(user);
 		user.setId(fullUser.getId());
@@ -77,6 +77,7 @@ public class UsersController {
 		user.setPhoneNumber(fullUser.getPhoneNumber());
 		user.setDateOfBirth(fullUser.getDateOfBirth());
 		user.setManagedBy(fullUser.getManagedBy());
+		user.setCompany(fullUser.getCompany() != null ? fullUser.getCompany().getId() : 0);
 		user.setRole(fullUser.getRole().name());
 		
 		return new ResponseEntity<UserInputDTO>(user, HttpStatusCode.valueOf(200));
@@ -94,6 +95,7 @@ public class UsersController {
 		user.setPhoneNumber(fullUser.getPhoneNumber());
 		user.setDateOfBirth(fullUser.getDateOfBirth());
 		user.setManagedBy(fullUser.getManagedBy());
+		user.setCompany(fullUser.getCompany() != null ? fullUser.getCompany().getId() : 0);
 		user.setRole(fullUser.getRole().name());
 		return new ResponseEntity<UserInputDTO>(user, HttpStatusCode.valueOf(200));
 	}
@@ -112,6 +114,7 @@ public class UsersController {
 		user.setPhoneNumber(fullUser.getPhoneNumber());
 		user.setDateOfBirth(fullUser.getDateOfBirth());
 		user.setManagedBy(fullUser.getManagedBy());
+		user.setCompany(fullUser.getCompany() != null ? fullUser.getCompany().getId() : 0);
 		user.setRole(fullUser.getRole().name());
 		return new ResponseEntity<UserInputDTO>(user, HttpStatusCode.valueOf(200));
 	}

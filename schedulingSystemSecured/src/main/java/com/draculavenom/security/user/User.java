@@ -9,6 +9,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
@@ -28,6 +29,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
 
 @Getter
 @Setter
@@ -61,8 +63,9 @@ public class User implements UserDetails {
   @ToString.Exclude
   private List<Token> tokens;
 
-  @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
-  private CompanyName companyName;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "company_id")
+  private CompanyName company;
 
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {

@@ -103,8 +103,8 @@ public class AppointmentNotificationService {
     }
 
     public void sendAppointmentTimeUser(User user, Appointment appointment, User manager){
-        String companyName = manager.getCompanyName() != null 
-            ? manager.getCompanyName().getNameCompany() : manager.getName(); 
+        String companyName = manager.getCompany() != null 
+            ? manager.getCompany().getNameCompany() : manager.getName(); 
         String subject = "Your Appointment Start in 5 minutes";
 
         String body = """

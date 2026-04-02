@@ -20,6 +20,7 @@ public class UserDTO {
 	private String phoneNumber;
 	private LocalDate dateOfBirth;
 	private Integer managedBy;
+	private Integer company;
 	private String role;
 	private Boolean passwordChange;
 }

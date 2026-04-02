@@ -42,7 +42,9 @@ public class ManagerController {
 		ManagerDTO manager = new ManagerDTO();
 		User userManager = repository.getById(id);
 		manager.setName(userManager.getFirstName() + " " + userManager.getLastName());
-		companyNameRepository.findByUserId(id).ifPresent(c -> manager.setCompanyName(c.getNameCompany()));
+		if(userManager.getCompany() != null){
+			manager.setCompanyName(userManager.getCompany().getNameCompany());
+		}
 		manager.setManagerId(id);
 		List<ManagerOptions> managerOptionsList = managerRepository.findAllByManagerId(id);
 		if(managerOptionsList.size() > 0) {
@@ -65,8 +67,15 @@ public class ManagerController {
 		manager.setId(managerOptions.getId());
 		if(manager.getCompanyName() != null && !manager.getCompanyName().isBlank()){
 			User managerUser = repository.getById(manager.getManagerId());
-			CompanyName companyName = new CompanyName(manager.getCompanyName(), managerUser);
+			//CompanyName companyName = new CompanyName(manager.getCompanyName(), managerUser);
+			//companyNameRepository.save(companyName);
+			CompanyName companyName = new CompanyName();
+			companyName.setNameCompany(manager.getCompanyName());
+			companyName.setAdmin(repository.getById(manager.getAdminId()));
 			companyNameRepository.save(companyName);
+
+			managerUser.setCompany(companyName);
+			repository.save(managerUser);
 		}
 		return new ResponseEntity<ManagerDTO>(manager, HttpStatusCode.valueOf(200));
 	}
@@ -80,14 +89,19 @@ public class ManagerController {
 
 		User manager = repository.findById(managerId).orElseThrow(() -> new RuntimeException("User not found"));
 
-		CompanyName companyName = companyNameRepository.findByUserId(manager.getId()).orElse(null);
+		CompanyName companyName = manager.getCompany();
 
 		if(companyName == null) {
-			companyName = new CompanyName(companyDTO.getCompanyName(), manager);
+			companyName = new CompanyName();
+			companyName.setNameCompany(companyDTO.getCompanyName());
+			companyName.setAdmin(manager);
 		}else{
 			companyName.setNameCompany(companyDTO.getCompanyName());
 		}
 		companyNameRepository.save(companyName);
+
+		manager.setCompany(companyName);
+		repository.save(manager);
 
 		return ResponseEntity.ok().build();
 	}
@@ -99,8 +113,8 @@ public class ManagerController {
 		return new ResponseEntity<List<ManagerDTO>>(list.stream().map(u -> {
 			ManagerDTO manager = new ManagerDTO();
 			manager.setManagerId(u.getId());
-			manager.setName(u.getCompanyName() != null 
-				? u.getCompanyName().getNameCompany() 
+			manager.setName(u.getCompany() != null 
+				? u.getCompany().getNameCompany() 
 				: "WITHOUT COMPANY");
 			return manager;
 		}).collect(Collectors.toList()), HttpStatusCode.valueOf(200));
@@ -157,11 +171,11 @@ public class ManagerController {
 		List<CompanyNameDTO> result = repository.getAllByRole(Role.MANAGER)
 			.orElseThrow()
 			.stream()
-			.filter(u -> u.getCompanyName() != null)
+			.filter(u -> u.getCompany() != null)
 			.map(u -> {
 				CompanyNameDTO companyDTO = new CompanyNameDTO();
 				companyDTO.setManagerId(u.getId());
-				companyDTO.setCompanyName(u.getCompanyName().getNameCompany());
+				companyDTO.setCompanyName(u.getCompany().getNameCompany());
 				return companyDTO;
 			})
 			.collect(Collectors.toList());

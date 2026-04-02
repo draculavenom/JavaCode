@@ -9,6 +9,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
@@ -23,10 +24,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Entity
 @Table(
-    name = "company_name",
-    uniqueConstraints = {
-        @UniqueConstraint(columnNames = "user_id")
-    }
+    name = "company_name"
 )
 public class CompanyName {
     
@@ -37,12 +35,25 @@ public class CompanyName {
     @Column(name = "nameCompany", nullable = false)
     private String nameCompany;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @Column(name = "companyNumber", nullable = false)
+    private String companyNumber;
+
+    private Integer maxManager;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by", nullable = true)
+    private User admin;
 
     public CompanyName(String nameCompany, User user){
         this.nameCompany = nameCompany;
         this.user = user;
     }
+
+    public CompanyName(String nameCompany, String companyNumber, Integer maxManager, User admin){
+        this.nameCompany = nameCompany;
+        this.companyNumber = companyNumber;
+        this.maxManager = maxManager;
+        this.admin = admin;
+    }
 }
+
