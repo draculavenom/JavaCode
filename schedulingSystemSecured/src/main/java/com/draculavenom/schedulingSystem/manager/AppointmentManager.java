@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
 import com.draculavenom.notification.service.NotificationService;
+import com.draculavenom.schedulingSystem.dto.AppointmentResponseDTO;
 import com.draculavenom.schedulingSystem.model.Appointment;
 import com.draculavenom.schedulingSystem.model.AppointmentRepository;
 import com.draculavenom.schedulingSystem.model.AppointmentStatus;
@@ -62,7 +63,16 @@ public class AppointmentManager {
 	}
 	
 	public Appointment create(Appointment ap) throws Exception{
-		List<Appointment> appointments = getAppointmentsManagedByUserId(ap.getUserId());
+		User user = userRepository.findById(ap.getUserId()).orElseThrow();
+		User manager = userRepository.findById(ap.getManager().getId()).orElseThrow();
+		ap.setManager(manager);
+
+		if(!manager.getCompany().getId().equals(user.getCompany().getId())){
+			throw new Exception("Manager does not belong to your company");
+		}
+
+		List<Appointment> appointments = getAppointmentsByManagerWithStatus(manager.getId());
+
 		if(appointments.stream().filter(a -> a.getDate().equals(ap.getDate()) && a.getTime().equals(ap.getTime())).findFirst().isEmpty()) {
 			if((ap.getDate().isBefore(LocalDate.now())) || (ap.getDate().equals(LocalDate.now()) && ap.getTime().isBefore(LocalTime.now()))) {
 				throw new Exception("You can't schedule appointments in the past. Please select a valid option");
@@ -79,9 +89,28 @@ public class AppointmentManager {
 		}else
 			throw new Exception("That slot is already been scheduled, please try again with a different slot");
 	}
+
+	public AppointmentResponseDTO toDTO(Appointment ap){
+		AppointmentResponseDTO dto = new AppointmentResponseDTO();
+		dto.setAppointmentId(ap.getId());
+		dto.setDate(ap.getDate());
+		dto.setTime(ap.getTime());
+		dto.setStatus(ap.getStatus());
+		dto.setUserId(ap.getUserId());
+		dto.setComment(ap.getComment());
+		if(ap.getManager() != null){
+			dto.setManagerId(ap.getManager().getId());
+		}
+		return dto;
+	}
 	
 	public Appointment update(Appointment ap) throws Exception{
-		List<Appointment> appointments = getAppointmentsManagedByUserId(ap.getUserId());
+		User user = userRepository.findById(ap.getUserId()).orElseThrow();
+		User manager = userRepository.findById(ap.getManager().getId()).orElseThrow();
+		if(!manager.getCompany().getId().equals(user.getCompany().getId())){
+			throw new Exception("Manager does not belong to your company");
+		}
+		List<Appointment> appointments = getAppointmentsByManagerWithStatus(manager.getId());
 		if(appointments.stream().filter(a -> a.getDate().equals(ap.getDate()) && a.getTime().equals(ap.getTime())).findFirst().isEmpty()) {
 			if((ap.getDate().isBefore(LocalDate.now())) || (ap.getDate().equals(LocalDate.now()) && ap.getTime().isBefore(LocalTime.now())))
 				throw new Exception("You can't schedule appointments in the past. Please select a valid option");
@@ -133,6 +162,15 @@ public class AppointmentManager {
 		}
 		return appointments;
 	}
+
+	public List<Appointment> getAppointmentsByManagerWithStatus(Integer managerId){
+		List<AppointmentStatus> statuses = List.of(
+			AppointmentStatus.SCHEDULED,
+			AppointmentStatus.COMPLETED,
+			AppointmentStatus.CONFIRMED
+		);
+		return repository.findByManagerIdAndStatusIn(managerId, statuses);
+	}
 	
 	public List<Appointment> getAppointmentsManagedByUserIdAllStatus(int userId){
 		List<Appointment> appointments = repository.findAll();
@@ -150,5 +188,21 @@ public class AppointmentManager {
 			log.error("Error sending appointment status notification", e);
 		}
 		return saved;
+	}
+
+	public List<Appointment> getAppointmentsByCompany(Integer userId){
+		User user = userRepository.findById(userId).orElseThrow();
+		return repository.findByManagerCompany(user.getCompany());
+	}
+
+	public List<Appointment> getAppointmentsByManagerAndCompany(Integer managerId, Integer userId){
+		User user = userRepository.findById(userId).orElseThrow();
+		return repository.findByManagerIdAndManagerCompany(managerId, user.getCompany());
+	}
+
+	public List<AppointmentResponseDTO> toDTOList(List<Appointment> list){
+		return list.stream()
+			.map(this::toDTO)
+			.collect(Collectors.toList());
 	}
 }

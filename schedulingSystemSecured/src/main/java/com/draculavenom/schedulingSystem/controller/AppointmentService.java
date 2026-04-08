@@ -37,14 +37,11 @@ public class AppointmentService {
                 continue;
             }
 
-            User manager = null;
-            CompanyName company = null;
+            User manager = appointment.getManager();
+            CompanyName company = manager != null ? manager.getCompany() : null;
 
-            if(user.getManagedBy() != null) {
-                manager = usersById.get(user.getManagedBy());
-                if(manager != null) {
-                    company = manager.getCompany();
-                }
+            if(user == null || manager == null){
+                continue;
             }
 
             AppointmentResponseDTO dto = new AppointmentResponseDTO();
@@ -53,16 +50,12 @@ public class AppointmentService {
             dto.setTime(appointment.getTime());
             dto.setStatus(appointment.getStatus());
             dto.setUserId(user.getId());
+            dto.setManagerId(appointment.getManager().getId());
 
             dto.setFirstName(user.getFirstName());
             dto.setLastName(user.getLastName());
 
-            String companyName = Optional.ofNullable(manager)
-                .map(User::getCompany)
-                .map(CompanyName::getNameCompany)
-                .orElse("");
-
-            dto.setCompanyName(companyName);
+            dto.setCompanyName(company != null ? company.getNameCompany() : "");
 
             response.add(dto);
         }

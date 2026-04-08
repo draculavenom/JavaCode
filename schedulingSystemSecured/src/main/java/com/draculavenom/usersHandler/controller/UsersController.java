@@ -48,7 +48,7 @@ public class UsersController {
 	public UserInputDTO get(@PathVariable int id) {
 		User fullUser = repository.getById(id);
 		if(fullUser != null) {
-			UserInputDTO user = new UserInputDTO(fullUser.getId(), fullUser.getEmail(), fullUser.getFirstName(), fullUser.getLastName(), "", fullUser.getPhoneNumber(), fullUser.getDateOfBirth(), (int) (fullUser.getManagedBy() != null ? fullUser.getManagedBy() : 0), fullUser.getCompany() != null ? fullUser.getCompany().getId() : 0, fullUser.getRole().name());
+			UserInputDTO user = new UserInputDTO(fullUser.getId(), fullUser.getEmail(), fullUser.getFirstName(), fullUser.getLastName(), "", fullUser.getPhoneNumber(), fullUser.getDateOfBirth(), (int) (fullUser.getManagedBy() != null ? fullUser.getManagedBy() : 0), fullUser.getCompany() != null ? fullUser.getCompany().getId() : 0, fullUser.getCompany() != null ? fullUser.getCompany().getNameCompany() : "", fullUser.getMaxManager(), fullUser.getRole().name());
 			return user;
 		}
 		return null;
@@ -78,6 +78,7 @@ public class UsersController {
 		user.setDateOfBirth(fullUser.getDateOfBirth());
 		user.setManagedBy(fullUser.getManagedBy());
 		user.setCompany(fullUser.getCompany() != null ? fullUser.getCompany().getId() : 0);
+		user.setMaxManager(fullUser.getMaxManager());
 		user.setRole(fullUser.getRole().name());
 		
 		return new ResponseEntity<UserInputDTO>(user, HttpStatusCode.valueOf(200));
@@ -85,7 +86,7 @@ public class UsersController {
 	}
 	
 	@PutMapping
-	@PreAuthorize("hasAuthority('admin:update')")
+	@PreAuthorize("hasAnyAuthority('admin:update' , 'owner:update')")
 	public ResponseEntity<UserInputDTO> update(@RequestBody UserInputDTO user) {
 		User fullUser = manager.update(user);
 		user.setId(fullUser.getId());
@@ -96,6 +97,7 @@ public class UsersController {
 		user.setDateOfBirth(fullUser.getDateOfBirth());
 		user.setManagedBy(fullUser.getManagedBy());
 		user.setCompany(fullUser.getCompany() != null ? fullUser.getCompany().getId() : 0);
+		user.setMaxManager(fullUser.getMaxManager());
 		user.setRole(fullUser.getRole().name());
 		return new ResponseEntity<UserInputDTO>(user, HttpStatusCode.valueOf(200));
 	}

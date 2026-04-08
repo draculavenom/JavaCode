@@ -22,7 +22,7 @@ import lombok.ToString;
 public class ManagerOptions {
 	@Id @GeneratedValue private int id;
 	private int userId;
-	private int managerId;
+	private int companyId;
 	private Integer sellerId;
 	private double ammountPaid;
 	private LocalDate activeDate;

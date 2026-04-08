@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,6 +22,7 @@ import com.draculavenom.schedulingSystem.manager.AppointmentManager;
 import com.draculavenom.schedulingSystem.model.Appointment;
 import com.draculavenom.schedulingSystem.model.AppointmentRepository;
 import com.draculavenom.schedulingSystem.utilities.EmailService;
+import com.draculavenom.security.user.User;
 
 
 @RestController
@@ -39,47 +41,70 @@ public class AppointmentController {
 	}
 	
 	@GetMapping("/byUserId/{id}")
-	public ResponseEntity<List<Appointment>> getAllByUserId(@PathVariable Integer id){
-		return new ResponseEntity<List<Appointment>>(repository.findAllByUserId(id), HttpStatusCode.valueOf(200));
+	public ResponseEntity<List<AppointmentResponseDTO>> getAllByUserId(@PathVariable Integer id){
+		List<Appointment> appointments = repository.findAllByUserId(id);
+		return ResponseEntity.ok(manager.toDTOList(appointments));
 	}
 	
 	@GetMapping("/byManagerId/{id}")
 	@PreAuthorize("hasAuthority('manager:read')")
-	public ResponseEntity<List<Appointment>> getAllByManagerId(@PathVariable Integer id){
-		return new ResponseEntity<List<Appointment>>(manager.getAppointmentsManagedByUserIdAllStatus(id), HttpStatusCode.valueOf(200));
+	public ResponseEntity<List<AppointmentResponseDTO>> getAllByManagerId(@PathVariable Integer id){
+		List<Appointment> appointments = repository.findByManagerId(id);
+		return ResponseEntity.ok(manager.toDTOList(appointments));
 	}
 	
 	@GetMapping("{id}")
-	public ResponseEntity<Appointment> get(@PathVariable Integer id) {
-		return new ResponseEntity<Appointment>(repository.findById(id).orElse(null), HttpStatusCode.valueOf(200));
+	public ResponseEntity<AppointmentResponseDTO> get(@PathVariable Integer id) {
+		Appointment ap = repository.findById(id).orElse(null);
+		return ResponseEntity.ok(manager.toDTO(ap));
 	}
 	
 	@PostMapping
-	public ResponseEntity<Appointment> create(@RequestBody Appointment ap) {
+	public ResponseEntity<?> create(@RequestBody Appointment ap) {
 		try {
-			return new ResponseEntity<Appointment>(manager.create(ap), HttpStatusCode.valueOf(200));
+			Appointment saved = manager.create(ap);
+			return ResponseEntity.ok(manager.toDTO(saved));
 		} catch (Exception e) {
 			return new ResponseEntity(e.getMessage(), HttpStatusCode.valueOf(400));
 		}
 	}
 	
 	@PutMapping("")
-	public ResponseEntity<Appointment> update(@RequestBody Appointment ap) {
+	public ResponseEntity<?> update(@RequestBody Appointment ap) {
 		try {
-			return new ResponseEntity<Appointment>(manager.update(ap), HttpStatusCode.valueOf(200));
+			Appointment saved = manager.update(ap);
+			return ResponseEntity.ok(manager.toDTO(saved));
 		} catch (Exception e) {
 			return new ResponseEntity(e.getMessage(), HttpStatusCode.valueOf(400));
 		}
 	}
 	
 	@DeleteMapping("{id}")
-	public ResponseEntity<Appointment> cancel(@PathVariable Integer id, @RequestParam String comment) {
-		return new ResponseEntity<Appointment>(manager.getAppointmentAndCancelIt(id, comment), HttpStatusCode.valueOf(200));
+	public ResponseEntity<AppointmentResponseDTO> cancel(@PathVariable Integer id, @RequestParam String comment) {
+		Appointment ap = manager.getAppointmentAndCancelIt(id, comment);
+		return ResponseEntity.ok(manager.toDTO(ap));
 	}
 	
 	@PutMapping("/updateStatus")
-	public ResponseEntity<Appointment> updateStatus(@RequestBody Appointment ap) {
-		return new ResponseEntity<Appointment>(manager.updateStatus(ap.getId(), ap.getStatus(), ap.getComment()), HttpStatusCode.valueOf(200));
+	public ResponseEntity<AppointmentResponseDTO> updateStatus(@RequestBody Appointment ap) {
+		Appointment updated = manager.updateStatus(ap.getId(), ap.getStatus(), ap.getComment());
+		return ResponseEntity.ok(manager.toDTO(updated));
+	}
+
+	@GetMapping("/company")
+	@PreAuthorize("hasAuthority('owner:read')")
+	public ResponseEntity<List<AppointmentResponseDTO>> getCompanyAppointments(){
+		User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		List<Appointment> appointments = repository.findByManagerCompany(currentUser.getCompany());
+		return ResponseEntity.ok(manager.toDTOList(appointments));
+	}
+
+	@GetMapping("/company/manager/{managerId}")
+	@PreAuthorize("hasAuthority('owner:read')")
+	public ResponseEntity<List<AppointmentResponseDTO>> getByManager(@PathVariable Integer managerId){
+		User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		List<Appointment> appointments = repository.findByManagerIdAndManagerCompany(managerId, currentUser.getCompany());
+		return ResponseEntity.ok(manager.toDTOList(appointments));
 	}
 	
 	@GetMapping("/email")

@@ -1,6 +1,7 @@
 package com.draculavenom.notification.service;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -28,15 +29,11 @@ public class NotificationService {
     }
 
     public void notifyAppointmentCreated(Appointment appointment){
-        User user = userRepository.findById(appointment.getUserId())
-            .orElseThrow(() -> new RuntimeException("User not found"));
+        User manager = appointment.getManager();
 
-        if(user.getManagedBy() == null){
+        if(manager == null){
             return;
         }
-
-        User manager = userRepository.findById(user.getManagedBy())
-        .orElseThrow(() -> new IllegalStateException("Manager not found"));
 
         if(!settingsService.shouldNotifyAppointmentCreated(manager)){
             return;
@@ -57,11 +54,10 @@ public class NotificationService {
         User user = userRepository.findById(appointment.getUserId())
             .orElseThrow(() -> new RuntimeException("User not found"));
         
-        if(user.getManagedBy() == null) {
+        User manager = appointment.getManager();
+        if(manager == null) {
             return;
         }
-        User manager = userRepository.findById(user.getManagedBy())
-            .orElseThrow(() -> new IllegalStateException("Manager not found"));
 
         if(!settingsService.shouldNotifyAppointmentStatusChanges(manager)) {
             return;
@@ -74,13 +70,17 @@ public class NotificationService {
         }
     }
 
-    public void notifySubscriptionReminder(User manager, LocalDate expirationDate, long daysLeft){
-        if(!settingsService.shouldNotifyPaymentRunOut(manager)) {
+    public void notifySubscriptionReminder(User owner, LocalDate expirationDate, long daysLeft){
+        if(!settingsService.shouldNotifyPaymentRunOut(owner)) {
             return;
         }
 
         try{
-            managerNotificationService.sendSubscriptionReminder(manager, expirationDate, daysLeft);    
+            managerNotificationService.sendSubscriptionReminder(owner, expirationDate, daysLeft);   
+            List<User> managers = userRepository.findByCompanyAndRole(owner.getCompany(), Role.MANAGER);
+            for(User manager : managers){
+                managerNotificationService.sendSubscriptionReminder(manager, expirationDate, daysLeft);
+            } 
         }catch(Exception e){
             System.err.println("Error sending subscription expired email: " + e.getMessage());
         } 
@@ -89,12 +89,11 @@ public class NotificationService {
     public void notifyAppointmentTimeManager(Appointment appointment){
         User user = userRepository.findById(appointment.getUserId())
             .orElseThrow(() -> new RuntimeException("User not found"));
+        User manager = appointment.getManager();
         
-        if(user.getManagedBy() == null) {
+        if(manager == null) {
             return;
         }
-        User manager = userRepository.findById(user.getManagedBy())
-            .orElseThrow(() -> new IllegalStateException("Manager not found"));
         
         if(!settingsService.shouldNotifyAppointmentTimeManager(manager)) {
             return;
@@ -111,11 +110,10 @@ public class NotificationService {
         User user = userRepository.findById(appointment.getUserId())
             .orElseThrow(() -> new RuntimeException("User not found"));
         
-        if(user.getManagedBy() == null) {
+        User manager = appointment.getManager();
+        if(manager == null) {
             return;
         }
-        User manager = userRepository.findById(user.getManagedBy())
-            .orElseThrow(() -> new IllegalStateException("Manager not found"));
         
         if(!settingsService.shouldNotifyAppointmentTimeUser(manager)) {
             return;

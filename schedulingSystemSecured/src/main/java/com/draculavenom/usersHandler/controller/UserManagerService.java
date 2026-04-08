@@ -34,11 +34,7 @@ public class UserManagerService {
     public User create(UserInputDTO user){
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         User currentUser = (User) auth.getPrincipal();
-        System.out.println("Role actual: " + currentUser.getRole());
         Role requestedRole = Role.valueOf(user.getRole());
-        System.out.println("Requested role: " + requestedRole);
-        System.out.println("Principal class: " + auth.getPrincipal().getClass());
-        System.out.println("Authorities: " + auth.getAuthorities());
         switch(currentUser.getRole()){
             case ADMIN:
                 if(requestedRole == Role.OWNER){
@@ -73,6 +69,7 @@ public class UserManagerService {
         CompanyName company = new CompanyName();
         company.setNameCompany(user.getCompanyName());
         company.setAdmin(admin);
+        company.setMaxManager(user.getMaxManager());
         company = companyRepository.save(company);
         newUser.setCompany(company);
 
@@ -80,11 +77,19 @@ public class UserManagerService {
     }
 
     private User createManager(UserInputDTO user, User owner){
+        CompanyName company = companyRepository.findById(owner.getCompany().getId())
+            .orElseThrow(() -> new RuntimeException("Company not found"));
+        
+        long currentManagers = repository.countByCompanyAndRole(company, Role.MANAGER);
+        if(company.getMaxManager() != null && currentManagers >= company.getMaxManager()){
+            throw new RuntimeException("You have reached the manager limit for your plan.");
+        }
+
         User newUser = buildBaseUser(user);
         
         newUser.setRole(Role.MANAGER);
         newUser.setManagedBy(owner.getId());
-        newUser.setCompany(owner.getCompany());
+        newUser.setCompany(company);
 
         return repository.save(newUser);
     }

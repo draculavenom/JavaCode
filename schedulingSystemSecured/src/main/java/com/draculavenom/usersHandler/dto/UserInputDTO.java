@@ -23,4 +23,5 @@ public class UserInputDTO {
 	private Integer company;
 	private String companyName;
 	private String role;
+	private Integer maxManager;
 }

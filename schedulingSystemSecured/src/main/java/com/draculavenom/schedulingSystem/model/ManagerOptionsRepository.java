@@ -8,7 +8,7 @@ public interface ManagerOptionsRepository extends JpaRepository<ManagerOptions, 
 	//I need a method that gives back the latest ManagerOption for an specific managerId sorting by Id
 	//public ManagerOptions findTopbyManagerIdOrderByIdDesc(int id);
 	
-	public List<ManagerOptions> findAllByManagerId(int id);
+	public List<ManagerOptions> findAllByCompanyId(int id);
 
-	ManagerOptions findTopByManagerIdOrderByActiveDateDesc(int managerId);
+	ManagerOptions findTopByCompanyIdOrderByActiveDateDesc(int companyId);
 }

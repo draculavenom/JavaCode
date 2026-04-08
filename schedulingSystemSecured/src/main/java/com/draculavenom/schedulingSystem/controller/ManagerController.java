@@ -5,9 +5,12 @@ import java.util.stream.Collectors;
 import java.util.ArrayList;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.neo4j.Neo4jProperties;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -35,95 +38,85 @@ public class ManagerController {
 	@Autowired private ManagerOptionsRepository managerRepository;
 	@Autowired private UserRepository repository;
 	@Autowired private CompanyNameRepository companyNameRepository;
+	@Autowired private ManagerOptionsService managerOptsService;
 	
 	@GetMapping("{id}")
 	@PreAuthorize("hasAuthority('admin:read')")
 	public ResponseEntity<ManagerDTO> get(@PathVariable Integer id){
-		ManagerDTO manager = new ManagerDTO();
-		User userManager = repository.getById(id);
-		manager.setName(userManager.getFirstName() + " " + userManager.getLastName());
-		if(userManager.getCompany() != null){
-			manager.setCompanyName(userManager.getCompany().getNameCompany());
+		ManagerDTO dto = new ManagerDTO();
+		CompanyName company = companyNameRepository.findById(id)
+			.orElseThrow(() -> new RuntimeException("Company not found"));
+		dto.setCompanyId(company.getId());
+    	dto.setCompanyName(company.getNameCompany());
+		List<ManagerOptions> options = managerRepository.findAllByCompanyId(id);
+		
+		if(!options.isEmpty()) {
+			ManagerOptions latest = options.stream().sorted((m1, m2) -> m1.getId()-m2.getId()).findFirst().orElse(null);	
+			System.out.println(latest.toString());
+			dto.setId(latest.getId());
+			dto.setActiveDate(latest.getActiveDate());
+			dto.setAdminId(latest.getUserId());
+			dto.setCompanyId(company.getId());
+			dto.setAmmountPaid(latest.getAmmountPaid());
+			dto.setComments(latest.getComments());		
+			
 		}
-		manager.setManagerId(id);
-		List<ManagerOptions> managerOptionsList = managerRepository.findAllByManagerId(id);
-		if(managerOptionsList.size() > 0) {
-			ManagerOptions managerOptions = managerOptionsList.stream().sorted((m1, m2) -> m1.getId()-m2.getId()).findFirst().orElse(null);	
-			System.out.println(managerOptions.toString());
-			manager.setId(managerOptions.getId());
-			manager.setActiveDate(managerOptions.getActiveDate());
-			manager.setAdminId(managerOptions.getUserId());
-			manager.setAmmountPaid(managerOptions.getAmmountPaid());
-			manager.setComments(managerOptions.getComments());		
-		}
-		return new ResponseEntity<ManagerDTO>(manager, HttpStatusCode.valueOf(200));
+		return new ResponseEntity<ManagerDTO>(dto, HttpStatusCode.valueOf(200));
 	}
 	
 	@PostMapping
 	@PreAuthorize("hasAuthority('admin:create')")
 	public ResponseEntity<ManagerDTO> create(@RequestBody ManagerDTO manager){
-		ManagerOptions managerOptions = new ManagerOptions(0, manager.getAdminId(), manager.getManagerId(), manager.getSellerId(), manager.getAmmountPaid(), manager.getActiveDate(), manager.getComments());
+		if(manager.getCompanyId() == null){
+			throw new RuntimeException("Company is required");
+		}
+		ManagerOptions managerOptions = new ManagerOptions(0, manager.getAdminId(), manager.getCompanyId(), manager.getSellerId(), manager.getAmmountPaid(), manager.getActiveDate(), manager.getComments());
 		managerOptions = managerRepository.save(managerOptions);
 		manager.setId(managerOptions.getId());
-		if(manager.getCompanyName() != null && !manager.getCompanyName().isBlank()){
-			User managerUser = repository.getById(manager.getManagerId());
-			//CompanyName companyName = new CompanyName(manager.getCompanyName(), managerUser);
-			//companyNameRepository.save(companyName);
-			CompanyName companyName = new CompanyName();
-			companyName.setNameCompany(manager.getCompanyName());
-			companyName.setAdmin(repository.getById(manager.getAdminId()));
-			companyNameRepository.save(companyName);
-
-			managerUser.setCompany(companyName);
-			repository.save(managerUser);
-		}
 		return new ResponseEntity<ManagerDTO>(manager, HttpStatusCode.valueOf(200));
 	}
 
-	@PutMapping("{managerId}/company")
+	@PutMapping("/company/{companyId}")
 	@PreAuthorize("hasAuthority('admin:update')")
-	public ResponseEntity<Void> updateCompany(@PathVariable Integer managerId, @RequestBody CompanyNameDTO companyDTO) {
+	public ResponseEntity<Void> updateCompany(@PathVariable Integer companyId, @RequestBody CompanyNameDTO companyDTO) {
 		if(companyDTO.getCompanyName() == null || companyDTO.getCompanyName().isBlank()) {
 			return ResponseEntity.badRequest().build();
 		}
 
-		User manager = repository.findById(managerId).orElseThrow(() -> new RuntimeException("User not found"));
+		CompanyName companyName = companyNameRepository.findById(companyId)
+			.orElseThrow(() -> new RuntimeException("Company not found"));
 
-		CompanyName companyName = manager.getCompany();
-
-		if(companyName == null) {
-			companyName = new CompanyName();
-			companyName.setNameCompany(companyDTO.getCompanyName());
-			companyName.setAdmin(manager);
-		}else{
-			companyName.setNameCompany(companyDTO.getCompanyName());
-		}
+		companyName.setNameCompany(companyDTO.getCompanyName());
+		//companyName.setAdmin(manager);
+		companyName.setMaxManager(companyDTO.getMaxManager());
+	
 		companyNameRepository.save(companyName);
-
-		manager.setCompany(companyName);
-		repository.save(manager);
 
 		return ResponseEntity.ok().build();
 	}
 	
 	
 	@GetMapping("/select")
-	public ResponseEntity<List<ManagerDTO>> getManagerSelect(){
-		List<User> list = repository.getAllByRole(Role.MANAGER).orElseThrow();
-		return new ResponseEntity<List<ManagerDTO>>(list.stream().map(u -> {
-			ManagerDTO manager = new ManagerDTO();
-			manager.setManagerId(u.getId());
-			manager.setName(u.getCompany() != null 
+	public ResponseEntity<List<ManagerDTO>> getCompanySelect(){
+		List<CompanyName> companies = companyNameRepository.findAll();
+		List<ManagerDTO> result = companies.stream().map(u -> {
+			ManagerDTO dto = new ManagerDTO();
+			dto.setCompanyId(u.getId());
+			/*dto.setName(u.getCompany() != null 
 				? u.getCompany().getNameCompany() 
-				: "WITHOUT COMPANY");
-			return manager;
-		}).collect(Collectors.toList()), HttpStatusCode.valueOf(200));
+				: "WITHOUT COMPANY");]*/
+			dto.setName(u.getNameCompany());
+			return dto;
+		}).collect(Collectors.toList());
+		return ResponseEntity.ok(result);
 	}
 
-	@GetMapping("/{managerId}/persons")
-	@PreAuthorize("hasAuthority('manager:read')")
-	public List<UserDTO> getPersonsByManager(@PathVariable Integer managerId){
-		List<User> users = repository.findAllByManagedBy(managerId).orElse(new ArrayList<>());
+	@GetMapping("/persons")
+	@PreAuthorize("hasAnyAuthority('manager:read', 'owner:read')")
+	public List<UserDTO> getPersons(){
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		User currentUser = (User) auth.getPrincipal();
+		List<User> users = managerOptsService.getPersons(currentUser);
 		return users.stream()
             .map(u -> UserDTO.builder()
 				.id(u.getId())
@@ -131,7 +124,7 @@ public class ManagerController {
 				.email(u.getEmail())
 				.phoneNumber(u.getPhoneNumber())
 				.dateOfBirth(u.getDateOfBirth())
-				.managedBy(u.getManagedBy())
+				.company(u.getCompany().getId())
 				.role(u.getRole().name()) 
 				.passwordChange(u.getPasswordChange())
 				.build())
@@ -141,20 +134,24 @@ public class ManagerController {
 	@GetMapping("/{managerId}/options")
 	@PreAuthorize("hasAuthority('admin:read')")
 	public List<ManagerDTO> getManagerOptions(@PathVariable Integer managerId) {
-		List<ManagerOptions> managerOptions = managerRepository.findAllByManagerId(managerId);
+		User manager = repository.getById(managerId);
+		if(manager.getCompany() == null){
+			return List.of();
+		}
+		List<ManagerOptions> managerOptions = managerRepository.findAllByCompanyId(manager.getCompany().getId());
 		return managerOptions.stream()
 			.map(o -> {
 				String sellerName = null;
 
 				if(o.getSellerId() != null){
 					User seller = repository.getById(o.getSellerId());
-					sellerName = seller.getName();
+					sellerName = seller.getFirstName() + " " + seller.getLastName();
 				}
 				
 				return ManagerDTO.builder()
 				.id(o.getId())
-				.managerId(o.getManagerId())
 				.adminId(o.getUserId())
+				.companyId(o.getCompanyId())
 				.sellerId(o.getSellerId())
 				.sellerName(sellerName)
 				.ammountPaid(o.getAmmountPaid())

@@ -19,6 +19,7 @@ public class ManagerDTO {
 	private Integer id;
 	private String name;
 	private String companyName;
+	private Integer companyId;
 	private Integer managerId;
 	private Integer adminId;
 	private Integer sellerId;

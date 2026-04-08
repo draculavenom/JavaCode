@@ -25,6 +25,8 @@ import java.io.IOException;
 
 import org.springframework.web.server.ResponseStatusException;
 
+import com.draculavenom.company.CompanyName;
+import com.draculavenom.company.CompanyNameRepository;
 import com.draculavenom.schedulingSystem.controller.ManagerOptionsService;
 
 @Service
@@ -36,6 +38,7 @@ public class AuthenticationService {
   private final JwtService jwtService;
   private final AuthenticationManager authenticationManager;
   private final ManagerOptionsService optionsService;
+  private final CompanyNameRepository companyRepository;
 
   public AuthenticationResponse register(RegisterRequest request) {
     var user = User.builder()
@@ -57,6 +60,9 @@ public class AuthenticationService {
   }
 
 	public AuthenticationResponse registerUser(UserInputDTO request) {
+
+    CompanyName company = companyRepository.findById(request.getCompany())
+      .orElseThrow(() -> new RuntimeException("Company not found"));
 		User user = User.builder()
 				.firstName(request.getFirstName())
 				.lastName(request.getLastName())
@@ -65,6 +71,7 @@ public class AuthenticationService {
 				.phoneNumber(request.getPhoneNumber())
 				.dateOfBirth(request.getDateOfBirth())
 				.managedBy(request.getManagedBy())
+        .company(company)
 				.role(Role.USER)
 				.build();
 		var savedUser = repository.save(user);
@@ -83,10 +90,9 @@ public class AuthenticationService {
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "USER_NOT_FOUND"));
 
     
-    if(user.getRole() == Role.MANAGER) {
-      boolean active = optionsService.isManagerActive(user.getId());
+    if(user.getCompany() != null && (user.getRole() == Role.OWNER || user.getRole() == Role.MANAGER)) {
+      boolean active = optionsService.isCompanyActive(user.getCompany().getId());
       if(!active) {
-        System.out.println(" Subscription expired for manager id: " + user.getEmail());
         throw new ResponseStatusException(HttpStatus.FORBIDDEN, "SUBSCRIPTION_EXPIRED");
       }
     }

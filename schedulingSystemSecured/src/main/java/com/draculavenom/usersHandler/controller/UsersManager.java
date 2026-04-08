@@ -50,7 +50,7 @@ public class UsersManager {
 					, "Your manager restarted your password" 
 					+ "\nThe new password is: " + newPassword 
 					+ "\nPlease click this link to change the password to a different one: "
-					+ "\nhttp://localhost:4200/resetPassword?email=" + user.getEmail() + "&password=" + newPassword
+					+ "\nhttps://xiu.creaar.xyz//resetPassword?email=" + user.getEmail() + "&password=" + newPassword
 					);
 			user.setPassword(passwordEncoder.encode(newPassword));
 			user.setPasswordChange(true);;
