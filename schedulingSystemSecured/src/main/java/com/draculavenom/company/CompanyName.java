@@ -36,6 +36,8 @@ public class CompanyName {
 
     @Column(name = "nameCompany", nullable = false)
     private String nameCompany;
+    @Column(name = "company_number", nullable = true)  
+    private String companyNumber;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
