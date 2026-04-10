@@ -4,6 +4,7 @@ import java.time.LocalDate;
 
 import org.springframework.stereotype.Service;
 
+import com.draculavenom.schedulingSystem.model.Appointment;
 import com.draculavenom.schedulingSystem.utilities.EmailService;
 import com.draculavenom.security.user.User;
 
@@ -36,6 +37,22 @@ public class ManagerNotificationService {
             );
 
             emailService.sendSimpleMessage(manager.getEmail(), subject, body);
-    }    
+    } 
+    
+    public void sendBlockedCompany(User user, Appointment appointment){
+        String subject = "Tried to schedule an appointment";
+
+        String body = """
+            Hello %s,
+
+            Someone tried to schedule an appointment, but was unsuccessful because the account is deactivated.
+
+            Don't miss any more opportunities and reactivate your account today.
+            """.formatted(
+                user.getName()
+            );
+
+            emailService.sendSimpleMessage(user.getEmail(), subject, body);
+    }
 
 }

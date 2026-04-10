@@ -6,9 +6,11 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.draculavenom.company.CompanyName;
 import com.draculavenom.notification.controller.NotificationSettingsService;
 import com.draculavenom.schedulingSystem.model.Appointment;
 import com.draculavenom.schedulingSystem.model.AppointmentStatus;
+import com.draculavenom.security.user.Role;
 import com.draculavenom.security.user.User;
 import com.draculavenom.security.user.UserRepository;
 
@@ -123,6 +125,28 @@ public class NotificationService {
             appointmentNotificationService.sendAppointmentTimeUser(user, appointment, manager);
         }catch(Exception e){
             System.err.println("Error sending appointment confirmed: " + e.getMessage());
+        }
+    }
+
+    public void notifyBlockedCompany(User user, Appointment appointment){
+        CompanyName company = user.getCompany();
+        if(company == null){
+            return;
+        }
+
+        User owner = userRepository.findByCompanyAndRole(company, Role.OWNER)
+            .stream()
+            .findFirst()
+            .orElseThrow(() -> new RuntimeException("Owner not found"));
+
+        User manager = appointment.getManager();
+        try{
+            managerNotificationService.sendBlockedCompany(owner, appointment);
+            if(manager != null){
+                managerNotificationService.sendBlockedCompany(manager, appointment);
+            }
+        }catch(Exception e){
+            System.err.println("Error sending notification: " + e.getMessage());
         }
     }
 

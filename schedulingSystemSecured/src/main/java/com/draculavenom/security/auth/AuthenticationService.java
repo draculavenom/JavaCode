@@ -63,6 +63,10 @@ public class AuthenticationService {
 
     CompanyName company = companyRepository.findById(request.getCompany())
       .orElseThrow(() -> new RuntimeException("Company not found"));
+    boolean active = optionsService.isCompanyActive(company.getId());
+    if(!active){
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "COMPANY_INACTIVE");
+    }
 		User user = User.builder()
 				.firstName(request.getFirstName())
 				.lastName(request.getLastName())

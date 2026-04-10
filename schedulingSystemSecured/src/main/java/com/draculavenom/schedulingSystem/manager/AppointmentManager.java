@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
 import com.draculavenom.notification.service.NotificationService;
+import com.draculavenom.schedulingSystem.controller.ManagerOptionsService;
 import com.draculavenom.schedulingSystem.dto.AppointmentResponseDTO;
 import com.draculavenom.schedulingSystem.model.Appointment;
 import com.draculavenom.schedulingSystem.model.AppointmentRepository;
@@ -26,6 +27,7 @@ public class AppointmentManager {
 	@Autowired private AppointmentRepository repository;
 	@Autowired private UserRepository userRepository;
 	@Autowired private NotificationService notificationService;
+	@Autowired private ManagerOptionsService optionsService;
 
 	private Appointment applyStatusChange(Appointment appointment, AppointmentStatus newStatus, String comment, boolean systemAction){
 		boolean requiresComment = false;
@@ -64,9 +66,16 @@ public class AppointmentManager {
 	
 	public Appointment create(Appointment ap) throws Exception{
 		User user = userRepository.findById(ap.getUserId()).orElseThrow();
+		if(user.getCompany() == null){
+			throw new Exception("User has no company assigned");
+		}
 		User manager = userRepository.findById(ap.getManager().getId()).orElseThrow();
 		ap.setManager(manager);
-
+		boolean active = optionsService.isCompanyActive(user.getCompany().getId());
+		if(!active){
+			notificationService.notifyBlockedCompany(user, ap);
+			throw new Exception("Company subscription is inactive");
+		}
 		if(!manager.getCompany().getId().equals(user.getCompany().getId())){
 			throw new Exception("Manager does not belong to your company");
 		}
