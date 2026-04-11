@@ -12,4 +12,6 @@ public interface WhatsappConfigRepository extends JpaRepository<WhatsappConfig, 
 
     Optional<WhatsappConfig> findByCompanyId(Integer companyId);
 
+    Optional<WhatsappConfig> findByVerifyToken(String verifyToken);
+
 }
