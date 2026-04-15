@@ -12,6 +12,10 @@ import static com.draculavenom.security.user.Permission.ADMIN_CREATE;
 import static com.draculavenom.security.user.Permission.ADMIN_DELETE;
 import static com.draculavenom.security.user.Permission.ADMIN_READ;
 import static com.draculavenom.security.user.Permission.ADMIN_UPDATE;
+import static com.draculavenom.security.user.Permission.OWNER_CREATE;
+import static com.draculavenom.security.user.Permission.OWNER_DELETE;
+import static com.draculavenom.security.user.Permission.OWNER_READ;
+import static com.draculavenom.security.user.Permission.OWNER_UPDATE;
 import static com.draculavenom.security.user.Permission.MANAGER_CREATE;
 import static com.draculavenom.security.user.Permission.MANAGER_DELETE;
 import static com.draculavenom.security.user.Permission.MANAGER_READ;
@@ -47,6 +51,22 @@ public enum Role {
                   USER_DELETE,
                   USER_CREATE
           )
+  ),
+  OWNER(
+        Set.of(
+                OWNER_READ,
+                OWNER_UPDATE,
+                OWNER_DELETE,
+                OWNER_CREATE,
+                MANAGER_READ,
+                MANAGER_UPDATE,
+                MANAGER_DELETE,
+                MANAGER_CREATE,
+                USER_READ,
+                USER_UPDATE,
+                USER_DELETE,
+                USER_CREATE
+        )
   ),
   MANAGER(
           Set.of(

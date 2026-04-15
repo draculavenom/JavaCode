@@ -1,5 +1,8 @@
 package com.draculavenom.security.auth;
 
+import java.util.List;
+
+import com.draculavenom.usersHandler.dto.AccountOption;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,4 +19,7 @@ public class AuthenticationResponse {
   private String accessToken;
   @JsonProperty("refresh_token")
   private String refreshToken;
+
+  private Boolean requiresSelection;
+  private List<AccountOption> accounts;
 }

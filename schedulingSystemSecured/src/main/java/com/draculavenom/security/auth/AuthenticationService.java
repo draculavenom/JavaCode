@@ -7,6 +7,7 @@ import com.draculavenom.security.token.TokenType;
 import com.draculavenom.security.user.Role;
 import com.draculavenom.security.user.User;
 import com.draculavenom.security.user.UserRepository;
+import com.draculavenom.usersHandler.dto.AccountOption;
 import com.draculavenom.usersHandler.dto.UserInputDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -22,6 +23,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.springframework.web.server.ResponseStatusException;
 
@@ -38,6 +40,7 @@ public class AuthenticationService {
   private final ManagerOptionsService optionsService;
 
   public AuthenticationResponse register(RegisterRequest request) {
+    validateEmailRole(request.getEmail(), request.getRole());
     var user = User.builder()
     	.id(request.getId())
         .firstName(request.getFirstName())
@@ -57,6 +60,7 @@ public class AuthenticationService {
   }
 
 	public AuthenticationResponse registerUser(UserInputDTO request) {
+    validateEmailRole(request.getEmail(), Role.USER);
 		User user = User.builder()
 				.firstName(request.getFirstName())
 				.lastName(request.getLastName())
@@ -77,25 +81,38 @@ public class AuthenticationService {
 				.build();
 	}
 
-  public AuthenticationResponse authenticate(AuthenticationRequest request) {
+  public AuthenticationResponse authenticate(AuthenticationRequest request){
+    List<User> users = repository.findAllByEmail(request.getEmail());
+    if(users.isEmpty()){
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "USER_NOT_FOUND");
+    }
+    List<User> validUsers = users.stream()
+      .filter(user -> passwordEncoder.matches(request.getPassword(), user.getPassword()))
+      .toList();
 
-    var user= repository.findByEmail(request.getEmail())
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "USER_NOT_FOUND"));
+    System.out.println("usuarios validos" + validUsers);
+    if(validUsers.isEmpty()){
+      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS");
+    }
 
-    
-    if(user.getRole() == Role.MANAGER) {
+    if(validUsers.size() == 1){     // Case 1: only one
+      User user = validUsers.get(0);
+      validateManager(user);
+      return buildAuthResponse(user);
+    }
+    return buildSelectionResponse(validUsers);      // Case 2: multiple + selector
+  }
+
+  private void validateManager(User user){
+    if(user.getRole() == Role.MANAGER){
       boolean active = optionsService.isManagerActive(user.getId());
-      if(!active) {
-        System.out.println(" Subscription expired for manager id: " + user.getEmail());
+      if(!active){
         throw new ResponseStatusException(HttpStatus.FORBIDDEN, "SUBSCRIPTION_EXPIRED");
       }
     }
-    authenticationManager.authenticate(
-        new UsernamePasswordAuthenticationToken(
-            request.getEmail(),
-            request.getPassword()
-        )
-    );
+  }
+
+  private AuthenticationResponse buildAuthResponse(User user){
     var jwtToken = jwtService.generateToken(user);
     var refreshToken = jwtService.generateRefreshToken(user);
     revokeAllUserTokens(user);
@@ -104,6 +121,21 @@ public class AuthenticationService {
         .accessToken(jwtToken)
             .refreshToken(refreshToken)
         .build();
+  }
+
+  private AuthenticationResponse buildSelectionResponse(List<User> users){
+    List<AccountOption> options = users.stream()
+      .map(user -> new AccountOption(
+          user.getId(), 
+          user.getRole(),
+          user.getManagedBy()
+        ))
+        .toList();
+    
+    return AuthenticationResponse.builder()
+      .requiresSelection(true)
+      .accounts(options)
+      .build();
   }
 
   private void saveUserToken(User user, String jwtToken) {
@@ -141,8 +173,9 @@ public class AuthenticationService {
     refreshToken = authHeader.substring(7);
     userEmail = jwtService.extractUsername(refreshToken);
     if (userEmail != null) {
-      var user = this.repository.findByEmail(userEmail)
-              .orElseThrow();
+        List<User> users = this.repository.findAllByEmail(userEmail);
+        if(users.isEmpty()) return;
+        var user = users.get(0);
       if (jwtService.isTokenValid(refreshToken, user)) {
         var accessToken = jwtService.generateToken(user);
         revokeAllUserTokens(user);
@@ -153,6 +186,20 @@ public class AuthenticationService {
                 .build();
         new ObjectMapper().writeValue(response.getOutputStream(), authResponse);
       }
+    }
+  }
+
+  private void validateEmailRole(String email, Role role){
+    List<User> existingUsers = repository.findAllByEmail(email);
+    boolean roleExists = existingUsers.stream()
+      .anyMatch(user -> user.getRole() == role);
+    if(roleExists == true){
+      System.out.println("ACCOUNT_ALREADY_EXIST_FOR_THIS_ROLE");
+      throw new ResponseStatusException(HttpStatus.CONFLICT, "ACCOUNT_ALREADY_EXIST_FOR_THIS_ROLE");
+    }
+
+    if(!existingUsers.isEmpty() && role == Role.USER){
+      throw new ResponseStatusException(HttpStatus.CONFLICT, "EMAIL_ALREADY_REGISTERED_AS_USER");
     }
   }
 }

@@ -1,10 +1,13 @@
 package com.draculavenom.usersHandler.controller;
 
+import static org.junit.jupiter.api.DynamicTest.stream;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,8 +19,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.draculavenom.security.config.JwtService;
+import com.draculavenom.security.user.Role;
 import com.draculavenom.security.user.User;
 import com.draculavenom.security.user.UserRepository;
 import com.draculavenom.usersHandler.dto.UserDTO;
@@ -54,16 +59,44 @@ public class UsersController {
 		return null;
 	}
 	
-	@GetMapping("/byEmail/{email}")
+	// Method to obtain information related to the email address, if there are multiple accounts with that email address, it displays them all
+	@GetMapping("/byEmail/{email}")		
 	@PreAuthorize("hasAuthority('user:read')")
-	public UserDTO getByEmail(@PathVariable String email) {
-		Optional<User> optionalUser = repository.findByEmail(email);
-		if(!optionalUser.isEmpty()) {
-			User fullUser = optionalUser.get();
-			UserDTO user = new UserDTO(fullUser.getId(), fullUser.getEmail(), fullUser.getFirstName() + " " + fullUser.getLastName(), fullUser.getPhoneNumber(), fullUser.getDateOfBirth(), fullUser.getManagedBy(), fullUser.getRole().name(), fullUser.getPasswordChange());
-			return user;
+	public List<UserDTO> getByEmail(@PathVariable String email) {
+		List<User> users = repository.findAllByEmail(email);
+		if(users.isEmpty()) {
+			throw  new ResponseStatusException(HttpStatus.NOT_FOUND, "USERS_NOT_FOUND");
 		}
-		return null;
+		
+		return users.stream()
+			.map(user -> new UserDTO(
+				user.getId(), user.getEmail(), user.getFirstName() + " " + user.getLastName(), user.getPhoneNumber(), user.getDateOfBirth(), user.getManagedBy(), user.getRole().name(), user.getPasswordChange()
+			))
+			.toList();
+	}
+
+	// Method to obtain information about that user
+	@GetMapping("/byEmail/{email}/role/{role}")			
+	@PreAuthorize("hasAuthority('user:read')")
+	public UserDTO getByEmailAndRole(@PathVariable String email, @PathVariable Role role){
+		List<User> users = repository.findAllByEmail(email);
+		if(users.isEmpty()){
+			throw  new ResponseStatusException(HttpStatus.NOT_FOUND, "USERS_NOT_FOUND");
+		}
+
+		User user;
+		if(users.size() == 1){
+			user = users.get(0);
+		}else{
+			user = users.stream()
+			.filter(u -> u.getRole() == role)
+			.findFirst()
+			.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "USER_NOT_FOUND_WITH_ROLE"));
+
+		}		
+		return new UserDTO(
+			user.getId(), user.getEmail(), user.getFirstName() + " " + user.getLastName(), user.getPhoneNumber(), user.getDateOfBirth(), user.getManagedBy(), user.getRole().name(), user.getPasswordChange()
+		);
 	}
 	
 	@PostMapping

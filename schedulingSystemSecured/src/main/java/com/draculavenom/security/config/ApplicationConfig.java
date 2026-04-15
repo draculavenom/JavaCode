@@ -1,7 +1,11 @@
 package com.draculavenom.security.config;
 
 import com.draculavenom.security.user.UserRepository;
+
 import lombok.RequiredArgsConstructor;
+
+import java.util.List;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -15,6 +19,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 import org.springframework.security.oauth2.provider.token.TokenEnhancer;
 
+import com.draculavenom.security.user.User;
+
 @Configuration
 @RequiredArgsConstructor
 public class ApplicationConfig {
@@ -23,8 +29,15 @@ public class ApplicationConfig {
 
   @Bean
   public UserDetailsService userDetailsService() {
-    return username -> repository.findByEmail(username)
-        .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+    return username -> {
+      List<User> users = repository.findAllByEmail(username);
+      
+      if(users.isEmpty()){
+        throw new UsernameNotFoundException("User not found");
+      }
+
+      return users.get(0);
+    };
   }
 
   @Bean
